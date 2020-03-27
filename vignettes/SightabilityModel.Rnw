@@ -1,0 +1,832 @@
+%\documentclass[article]{jss}
+\documentclass[nojss]{jss}
+%\VignetteIndexEntry{Estimating Population Abundance Using Sightability Models: R SightabilityModel Package}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% declarations for jss.cls %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% almost as usual
+\author{John Fieberg\\Minnesota Department of Natural Resources}
+\title{Estimating Population Abundance Using Sightability Models: \proglang{R} \pkg{SightabilityModel} Package}
+
+%% for pretty printing and a nice hypersummary also set:
+\Plainauthor{John Fieberg} %% comma-separated
+\Plaintitle{Estimating Population Abundance Using Sightability Models: R SightabilityModel package} %% without formatting
+\Shorttitle{SightabilityModel package} %% a short title (if necessary)
+
+%% an abstract and keywords
+\Abstract{
+  This introduction to the \proglang{R}  \pkg{SightabilityModel} package is a slight modification of
+  \citet{Fiebergjss}, published in the \textit{Journal of Statistical Software}.  Sightability
+models are binary logistic-regression models used to estimate and
+adjust for visibility bias in wildlife-population surveys
+\citep{SS1989}. Estimation proceeds in 2 stages:  1) sightability
+trials are conducted with marked individuals, and logistic
+regression is used to estimate the probability of detection as a
+function of available covariates (e.g., visual obstruction, group
+size); 2) the fitted model is used to adjust counts (from future
+surveys) for animals that were not observed. A modified
+Horvitz-Thompson estimator is used to estimate abundance: counts of
+observed animal groups are divided by their inclusion probabilites
+(determined by plot-level sampling probabilities and the detection
+probabilities estimated from stage 1). We provide a brief historical
+account of the approach, clarifying  and documenting suggested
+modifications to the variance estimators originally proposed by
+\citet{SS1989}. We then introduce a new \proglang{R} package,
+\pkg{SightabilityModel}, for estimating abundance using this
+technique.  Lastly, we illustrate the software with a series of
+examples using data collected from moose (\emph{Alces alces}) in
+  northeastern Minnesota and mountain goats (\emph{Oreamnos americanus}) in Washington State. } \Keywords{abundance
+estimation, Horvitz-Thompson, logistic regression, sightability
+model, \proglang{R}, survey} \Plainkeywords{abundance estimation,
+Horvitz-Thompson, logistic
+regression, sightability model, R, survey} %% without formatting
+%% at least one keyword must be supplied
+
+%% publication information
+%% NOTE: Typically, this can be left commented and will be filled out by the technical editor
+%% \Volume{13}
+%% \Issue{9}
+%% \Month{September}
+%% \Year{2004}
+%% \Submitdate{2004-09-29}
+%% \Acceptdate{2004-09-29}
+
+%% The address of (at least) one author should be given
+%% in the following format:
+\Address{
+  John Fieberg\\
+  Biometrics Unit, Minnesota Department of Natural Resources\\
+  5463-C W. Broadway, Forest Lake, MN\\
+  E-mail: \email{john.fieberg@state.mn.us}\\
+  URL: \url{http://fwcb.cfans.umn.edu/personnel/faculty/fieberg/index.htm/}
+}
+%% It is also possible to add a telephone and fax number
+%% before the e-mail in the following format:
+%% Telephone: +43/1/31336-5053
+%% Fax: +43/1/31336-734
+
+%% for those who use Sweave please include the following line (with % symbols):
+%% need no \usepackage{Sweave.sty}
+
+%% end of declarations %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\VAR{{\rm Var}\,}
+\def\COV{{\rm Cov}\,}
+
+
+\begin{document}
+\section{Introduction}
+Many wildlife populations are monitored using aerial surveys, in
+which a random sample of spatial units (or plots) are flown and all
+observed animals are counted.  Typically, not all animals in the
+selected spatial units will be seen, and thus, population abundance estimators that
+correct only for sampling will be biased low. \citet{SS1989}
+developed a method for correcting aerial surveys for undetected
+animals that is now widely
+ used to estimate abundance of a variety of wildlife populations, including populations of
+mountain goats \citep{Rice2009}, bighorn sheep \citep{Bodie1995},
+Dall's sheep \citep{udevitz2006}, moose
+\citep{Anderson1996,GiudFieb2011}, elk \citep{samuel1987, otten1993,
+CoganDief1998, Lubow2002}, burrowing owls \citep{Manninginpress},
+and various waterfowl species \citep{Pearse2008}.  The approach
+proceeds in two stages. First, sightability trials are conducted
+with marked individuals to identify variables (e.g., group size,
+visual obstruction) that influence the probability that a group of
+animals will be observed; these data are used to estimate parameters
+of a logistic regression model. Second, the fitted logistic
+regression model is used to adjust counts (from future surveys) for
+animals that were not observed.
+
+\citet{SS1989} suggested a modified Horvitz-Thompson estimator of
+population size, in which animal counts are divided by their
+estimated detection probabilities and plot-level sampling
+probabilities.  They derived a complex expression for the variance
+of the estimator that included 3 separate variance components, that
+due to: 1) random sampling (of aerial plots);  2) random detection
+(and missed detection) of independent groups of individuals; and  3)
+estimation of parameters related to the detection process.  Although
+\citet{SS1989} proposed estimators for these variance components,
+these estimators were later shown to be biased. Consistent
+estimators for the variance components were later developed as part
+of a Ph.D. thesis \citep{Wong1996}, but these estimators have yet to
+appear in the published literature or in available software.
+Furthermore, the primary software used to implement the sightability
+model estimator, \proglang{Program Aerial Survey}
+\citep{Unsworth1999, Leban2007}, incorrectly implements
+ \citet{SS1989}'s (biased) variance estimator  in the case of stratified survey designs
+\citep{FiebGiud2008}.  Thus, there is a need to develop general
+software to analyze data from wildlife sightability surveys.
+
+The purpose of this paper is twofold:  1) we aim to provide a
+historical account of the variance estimators associated with the
+modified Horvitz-Thompson population abundance estimator originally
+proposed by \citet{SS1989}; 2) we  introduce an \proglang{R} package
+that implements \citet{SS1989}'s estimator along with
+\citet{Wong1996}'s consistent variance component (and total
+variance) estimators.  We demonstrate the use of the software with
+data collected from moose (\emph{Alces alces}) in
+  northeastern Minnesota and  mountain goats (\emph{Oreamnos americanus}) in Washington State.
+
+
+\section{Modified Horvitz-Thompson estimator}
+
+\subsection{Assumptions}
+The basic assumptions of the sightability model approach, listed below, are taken verbatim from  \citet{SS1989}:
+\begin{enumerate}
+\item The population is geographically and demographically closed.
+\item Groups of animals are independently observed.
+\item Observed groups are completely enumerated and observed only
+once.
+\item The survey design for land units can be specified.
+\item The probability of observing a group is known or can be
+estimated.
+\end{enumerate}
+
+\subsection{Notation}
+
+Below, we use the notation of \citet{thompson2002} and \citet{Wong1996}.  Let:
+
+
+\begin{tabular}{r c p{14cm}}
+$N$ & = & the number of spatial sampling units (hereafter ``plots'') in the population sampling frame.\\
+$n$ & = & the number of plots in the sample. \\
+$I_{i}$ & = & random variable, equal to 1 if the $i^{th}$ plot is selected and 0 otherwise.\\
+$\pi_{i}$ & = & $\Prob(I_{i}=1)$, the probability that the $i^{th}$ plot is selected. \\
+$\pi_{i,i'}$ & = & $\Prob(I_{i}=1, I_{i'}=1)$, the probability that both the $i^{th}$ and $i'^{th}$ plots are selected. \\
+$M_{i}$ & = & the number of animal groups in the $i^{th}$ plot \{$i=1, 2,\ldots, N\}.$\\
+$m_{i}$ & = & the number of animal groups observed or sighted in the $i^{th}$ sampled plot \{$i=1,\ldots,n\}.$\\
+$y_{i,j}$ & = & the number of animals in the $j^{th}$ group located in the $i^{th}$ plot \{$j=1,2,\ldots,M_{i}$\}.\\
+$Z_{i,j}$ & = & random variable, equal to 1 if the $j^{th}$ animal group in the $i^{th}$ plot is observed and 0 otherwise.  \\
+$g_{i,j}$ & = & $\Prob(Z_{i,j}=1 | I_{i}=1)$, the probability that the $j^{th}$ animal group located in the $i^{th}$ sampled plot is observed (conditional on the $i^{th}$ plot
+having been sampled).\\
+$\theta_{i,j}$ & = & $1/g_{i,j}$, an `inflation factor' associated with the $j^{th}$ observed animal group in the $i^{th}$ sampled plot.\\
+$\tau_{i}$ & = & the number of animals in the $i^{th}$ plot: $$\tau_{i} = \sum_{j=1}^{M_{i}}y_{i,j}$$ \\
+$\tau$ & = & total population size: $$\tau = \sum_{i=1}^{N}\sum_{j=1}^{M_{i}}y_{i,j}=\sum_{i=1}^{N}\tau_{i}$$\\
+
+\end{tabular}
+
+\subsection{Sightability model approach}
+The estimator developed in \citet{SS1989} involves the following
+steps:
+\begin{enumerate}
+\item  A set of sightability trials are conducted by flying test plots, each containing a radiocollared animal.
+  Although some animals are involved in
+multiple test plot surveys, each survey attempt is treated as an
+independent trial.  A suite of animal-specific covariates thought to
+influence detection probabilities, $x_{i}$, are collected whenever
+an animal is detected.  Similarly, if an animal is not detected when
+flying a test plot, then telemetry is used to locate the individual
+immediately after the test plot was surveyed.  If the individual is
+still within the boundaries of the test plot, then the  same suite
+of covariate information is collected and the observation is
+included in the sightability data frame.  The end result is a set of
+sightability (or detection) observations ($w_{i} = 1$ if the
+radiocollared animal in the $i^{th}$
+ sightability trial was seen and 0 otherwise) and a vector of covariate values $(x_{i})$ thought to influence detection
+ probabilities.
+
+\item  A logistic regression model (relating probability of detection to covariates) is built using data from step 1.  Let $\hat{\beta}$
+= estimated regression parameters and  $\hat{\Sigma}$ = estimated variance-covariance matrix of $\hat{\beta}$.
+\item  A new, operational survey, is conducted in which a random sample of plots are surveyed.  Within each
+plot, individuals or groups of individuals are observed, and the
+same covariates used to model detection probabilities in step 1 are
+recorded.
+\item The regression model from step 2 is used to estimate `inflation
+factors', $\hat{\theta}_{i}$  = inverse probability of detection,
+for each independent group in step 3;  these inflation factors
+account for animals that were not detected during the operational
+survey. \citet{SS1989} and \citet{Wong1996} suggest using:
+\begin{equation}
+\label{thetahat} \hat{\theta}_{i}=1+exp(-x_{i}^{\top}\hat{\beta}-
+ x_{i}^{\top}\hat{\Sigma}x_{i}/2)
+\end{equation}
+Using large sample maximum likelihood
+ theory and the result that $\hat{\beta}  \stackrel{d}{\to} N(\beta, \Sigma)$, \citet{SS1989} showed that this estimator will be consistent for $\frac{1}{g_{i,j}}$.
+
+
+Similarly, \citet{SS1989} suggested the following expressions for
+$\widehat{\VAR}(\hat{\theta}_{i})$ and
+$\widehat{\COV}(\hat{\theta}_{i}, \hat{\theta}_{j})$, where $i$ and
+$j$ index observations with two different sets of covariates $x_{i}$
+and $x_{j}$:
+\begin{eqnarray}
+\label{varthetahat} \widehat{\VAR}(\hat{\theta}_{i}) & = & \exp(-2x_{i}^{\top} \hat{\beta}-2x_{i}^{\top}\hat{\Sigma}x_{i})(\exp(x_{i}^{\top}\hat{\Sigma}x_{i})-1)\\
+\label{covthetahat} \widehat{\COV}(\hat{\theta}_{i},
+\hat{\theta}_{j}) & = &
+\exp(-(x_{i}+x_{j})^{\top}\hat{\beta}-(x_{i}+x_{j})^{\top}\hat{\Sigma}(x_{i}+x_{j})/2)(\exp(x_{i}^{\top}\hat{\Sigma}x_{j})-1)
+\end{eqnarray}
+
+These expressions, motivated by the asymptotic normality of
+$\hat{\beta}$, will be needed to derive an expression for
+$\widehat{\VAR}(\hat{\tau})$.
+
+\item The total number of animals in the $i^{th}$ sampling unit is estimated by summing the number of independently observed animals (or groups of
+animals) multiplied by their inflation factors (from step 4) across
+all observed groups in the aerial unit: $$\hat{\tau}_{i} =
+\sum_{j=1}^{M_{i}}Z_{i,j}y_{i,j}\hat{\theta}_{i,j}=\sum_{j=1}^{m_{i}}y_{i,j}\hat{\theta}_{i,j}
+$$
+\item The total number of animals in the study area, $\tau$ , is estimated by dividing values in step 5 by known probabilities of sampling each aerial unit
+ to account for unsampled aerial units:
+
+\begin{equation}
+  \label{tauhat}
+  \hat{\tau}= \sum_{i=i}^{N}\sum_{j=1}^{M_{i}} \frac{I_{i}Z_{i,j}y_{i,j}\hat{\theta}_{i,j}}{\pi_{i}} =\sum_{i=i}^{n}\sum_{j=1}^{m_{i}} \frac{y_{i,j}\hat{\theta}_{i,j}}{\pi_{i}}
+\end{equation}
+This estimator is a modified Horvitz-Thompson estimator because it
+is constructed by dividing each observation by its estimated
+inclusion
+ probability - i.e., probability of the animal or group of animals being observed during the survey \citep{SS1989, thompson2002}.
+\end{enumerate}
+
+Note, the approach can also be applied to situations involving a
+complete aerial census (by setting all $\pi_{i} = 1$).  In the same
+way,
+ one can apply the approach to non-randomly sampled plots (but inference should be restricted to these plots). Importantly,
+ Horvitz-Thompson estimators are unbiased if inclusion probabilities are known.  When the inclusion probabilities are not known, the modified Horvitz-Thompson
+ estimator will still be consistent, provided the estimators of the inclusion probabilities are consistent \citep{thompson2002}.
+
+
+
+\section{Variance estimators}
+The variance of $\hat{\tau}$ can be derived by applying the
+ conditional variance formula  \citep{Casella1990}:
+\begin{equation}
+\label{condvar} \VAR(Y)=\E_{X}[\VAR(Y|X)]+\VAR_{X}[\E(Y|X)] .
+\end{equation}
+ To help understand the historical development of variance
+estimators, it is helpful to distinguish between two cases:
+
+\begin{description}
+\item [Case A] Detection (i.e., sightability) probabilities are assumed known.
+\item [Case B] Detection probabilities are estimated.
+\end{description}
+
+Following \citet{SS1989} and \citet{Wong1996}, we will refer to the
+variance of $\hat{\tau}$ as $\VAR(\hat{\tau}_{\pi})$ for Case A and
+$\VAR(\hat{\tau}_{LR})$ for Case B.
+
+\subsection{Case A:  Detection parameters assumed known}
+In the case where detection parameters are assumed known,
+uncertainty arises from random sampling of aerial plots and also
+from the random detection process, captured by the indicator
+variables $I_{i}$ and $Z_{i,j}$, respectively. Conditioning on the
+$I_{i}$, and applying Equation~\ref{condvar}, \citet{SS1989} derived
+an expression for $\VAR(\hat{\tau}_{\pi})$ when detection
+probabilities are known:
+\begin{eqnarray}
+\VAR(\hat{\tau}_{\pi})& = & \VAR_{I}(\E_{Z|I}(\hat{\tau}_{\pi})) + \E(\VAR_{Z|I}(\hat{\tau}_{\pi})) =  V_{s}+V_{d}, \mbox{ with} \nonumber \\
+\label{SSvar} V_{s} & = &  \sum_{i=1}^{N}\frac{1-\pi_{i}}{\pi_{i}}\tau_{i}^{2}+\sum_{i\neq i'}^{N}\frac{\pi_{i,i'}-\pi_{i}\pi_{i'}}{\pi_{i}\pi_{i'}}\tau_{i}\tau_{i'}.\\
+V_{d} & = &   \sum_{i=1}^{N}\frac{1}{\pi_{i}}\sum_{j=1}^{M_{i}}\frac{1-g_{i,j}}{g_{i,j}}y_{i,j}^2.
+\end{eqnarray}
+
+Thus, $\VAR(\hat{\tau}_{\pi})$ is  composed of two terms (or
+components), the first of which is due to sampling $(V_{s})$;  the
+second is due to the random detection process $(V_{d})$.
+\citet{SS1989}  suggested estimators for these variance components,
+which we will label $v_{s}$ and $v_{d}$:
+\begin{eqnarray}
+\label{vs} v_{s} & = & \sum_{i=1}^{n}\frac{1-\pi_{i}}{\pi_{i}^{2}}\hat{\tau}_{i}^{2}+\sum_{i\neq i'}^{n}\frac{\pi_{i,i'}-\pi_{i}\pi_{i'}}{\pi_{i,i'}\pi_{i}\pi_{i'}}\hat{\tau}_{i}\hat{\tau}_{i'} \\
+\label{vd} v_{d} & = & \sum_{i=1}^{n}\frac{1}{\pi_{i}^{2}}\sum_{j=1}^{m_{i}}\frac{1-g_{i,j}}{g_{i,j}^{2}}y_{i,j}^2,
+\end{eqnarray}
+where $\hat{\tau}_{i}=\sum_{j=1}^{m_{i}}y_{i,j}\hat{\theta}_{i,j}$.
+
+\citet{thompsonSeb1996} also derived an expression for
+$\VAR(\hat{\tau}_{\pi})$ using Equation~\ref{condvar}, but in
+contrast to \citet{SS1989}, they derived their expression by
+conditioning on the detection indicators, $Z_{i,j}$:
+\begin{eqnarray}
+ \VAR(\hat{\tau}_{\pi})& = & \E_{Z}(\VAR_{I|Z}(\hat{\tau}_{\pi})) + \VAR_{Z}(\E_{I|Z}(\hat{\tau}_{\pi})) =  V_{1}+V_{2}, \mbox{ with} \nonumber \\
+\label{TSvar} V_{1} & = &  \E_{Z}(\sum_{i=1}^{N}\frac{1-\pi_{i}}{\pi_{i}}\hat{\tau}_{i}^{2}+\sum_{i \neq i'}^{N}\frac{\pi_{i,i'}-\pi_{i}\pi_{i'}}{\pi_{i}\pi_{i'}}\hat{\tau}_{i}\hat{\tau}_{i'})\\
+V_{2} & = &
+\sum_{i=1}^{N}\sum_{j=1}^{M_{i}}\frac{1-g_{i,j}}{g_{i,j}}y_{i,j}^2.
+\end{eqnarray}
+
+\citet{thompsonSeb1996} did not evaluate the expectation in the
+expression for $V_{1}$ (Equation~\ref{TSvar}).  Nonetheless, they
+recognized that the two variance decompositions give equivalent
+expressions for $\VAR(\hat{\tau})$ (i.e., $V_{s}+V_{d} =
+V_{1}+V_{2}$).  Using this equivalence, we can solve for $V_{1}$:
+\begin{eqnarray}
+V_{1} & =
+&\sum_{i=1}^{N}\frac{1-\pi_{i}}{\pi_{i}}\tau_{i}^{2}+\sum_{i \neq
+i'}^{N}\frac{\pi_{i,i'}-
+\pi_{i}\pi_{i'}}{\pi_{i}\pi_{i'}}\tau_{i}\tau_{i'} +
+\sum_{i=1}^{N}\frac{1-\pi_{i}}{\pi_{i}}\sum_{j=1}^{M_{i}}\frac{1-g_{i,j}}{g_{i,j}}y^{2}_{i,j}.
+\end{eqnarray}
+
+
+\citet{thompsonSeb1996} also showed that $v_{d}$ was an unbiased
+estimator for $V_{d}$, but that
+  $v_{s}$ was a biased estimator of
+$V_{s}$. Lastly, \citet{thompsonSeb1996}  derived unbiased
+estimators ($v_{1}$ and $v_{2}$) for the two terms in their variance
+decomposition and, thus, provided an unbiased estimator for
+$\VAR(\hat{\tau}_{\pi})$ when detection probabilities are assumed
+known:
+\begin{eqnarray}
+v_{1} & = &  \sum_{i=1}^{n}\frac{1-\pi_{i}}{\pi_{i}^{2}}\hat{\tau}_{i}^{2}+\sum_{i \neq i'}^{n}\frac{\pi_{i,i'}-\pi_{i}\pi_{i'}}{\pi_{i,i'}\pi_{i}\pi_{i'}}\hat{\tau}_{i}\hat{\tau}_{i'}\\
+v_{2} & = &  \sum_{i=1}^{n}\frac{1}{\pi_{i}}\sum_{j=1}^{m_{i}}\frac{1-g_{i,j}}{g_{i,j}^2}y_{i,j}^2.
+\end{eqnarray}
+
+[Note that $v_{s}$ is the same as $v_{1}$, but $v_{d}$ and $v_{2}$
+differ by a factor of $1/\pi_{i}$.] Lastly, noting that
+\citet{SS1989}'s estimator, $\widehat{\VAR}(\hat{\tau}_{\pi}) =
+v_{s} + v_{d}$ is equal to $v_{1} + v_{d}$, \citet{thompsonSeb1996}
+were able  to derive an unbiased estimate of $V_{s}$, which we will
+label $v_{s}'$:
+\begin{eqnarray}
+v_{s}'& = &   v_{1}+v_{2}-v_{d} \nonumber \\
+&= & \sum_{i=1}^{n}\frac{1-\pi_{i}}{\pi_{i}^{2}}\hat{\tau}_{i}^{2}+\sum_{i \neq i'}^{n}\frac{\pi_{i,i'}-\pi_{i}\pi_{i'}}{\pi_{i,i'}\pi_{i}\pi_{i'}}\hat{\tau}_{i}\hat{\tau}_{i'} -  \sum_{i=1}^{n}\frac{
+1-\pi_{i}}{\pi_{i}^{2}}\sum_{j=1}^{m_{i}}\frac{1-g_{i,j}}{g_{i,j}^{2}}y_{i,j}^2
+\end{eqnarray}
+
+\citet{Wong1996} derived the same estimator (i.e., $v_{s}'$ for $V_{s}$) in her Ph.D. dissertation.
+
+Interestingly, \citet{samuel1992} developed sightability estimators
+for additional population quantities (e.g., sex ratios), and in
+their Appendix, they suggested a new variance component estimator
+for $V_{d}$ which turns out to be $v_{2}$.  Thus,
+\citet{samuel1992}'s suggestion results in \emph{biased} estimators
+for each individual variance component, but an \emph{unbiased}
+estimate of $\VAR(\hat{\tau}_{\pi})$, equivalent to
+\citet{thompsonSeb1996}'s estimator
+$\widehat{\VAR}(\hat{\tau}_{\pi}) = v_{1}+v_{2}$, if detection
+probabilities are assumed known.
+
+\subsection{Case B:  Detection parameters are estimated}
+
+\citet{SS1989} derived an expression for $\VAR(\hat{\tau}_{LR})$, by
+first noting that:
+\begin{equation}
+\VAR(\hat{\tau}_{LR}) =
+\VAR(\hat{\tau}_{\pi})+\E_{Z,I}\VAR(\hat{\tau}_{LR}|Z,I),
+\end{equation}
+where again, $\VAR(\hat{\tau}_{\pi})$ denotes the variance for the
+case where detection parameters are assumed to be known. This last
+term, $\E_{Z,I}\VAR(\hat{\tau}_{LR}|Z,I)$, captures uncertainty in
+$\hat{\tau}_{LR}$ associated with the estimated (logistic
+regression) detection parameters. Thus, \citet{SS1989} expressed the
+total variance in terms of 3 components, sampling $[V_{s}]$,
+sightability $[V_{d}]$, and that due to modeling the detection
+probabilities $[V_{m}]$.  \citet{SS1989} further showed that:
+\begin{eqnarray}
+V_{m} & = & \E_{Z,I}\VAR(\hat{\tau}_{LR}|Z,I) \nonumber \\
+&= &
+\sum_{i=1}^{N}\frac{1}{\pi_{i}}\sum_{j=1}^{M_{i}}\frac{y_{i,j}^2}{\theta_{i,j}}\VAR(\hat{\theta}_{i,j})+
+\sum_{i=1}^{N}\frac{1}{\pi_{i}}\sum_{j \neq j'}^{M_{i}}\frac{y_{i,j}y_{i,j'}}{\theta_{i,j}\theta_{i,j'}}\COV(\hat{\theta}_{i,j},\hat{\theta}_{i,j'}) \nonumber \\
+  & & + \sum_{i \neq i'}^{N}\frac{\pi_{i,i'}}{\pi_{i}\pi_{i'}}\sum_{j=1}^{M_{i}}\sum_{j '=1}^{M_{i'}}\frac{y_{i,j}y_{i,j'}}{\theta_{i,j}\theta_{i,j'}}\COV(\hat{\theta}_{i,j},\hat{\theta}_{i',j'})
+\end{eqnarray}
+
+ \citet{SS1989} and \citet{Wong1996} derived the same estimator for $V_{m}$, which we will refer to as $v_{m}$:
+\begin{eqnarray}
+ v_{m} & = & \sum_{i=1}^{n}\frac{1}{\pi_{i}^{2}}\sum_{j=1}^{m_{i}}y_{i,j}^{2}
+ \widehat{\VAR}(\hat{\theta}_{i,j}) + \sum_{i=1}^{n}\frac{1}{\pi_{i}^{2}}\sum_{j \neq j'}^{m_{i}}y_{i,j}y_{i,j'}\widehat{\COV}(\hat{\theta}_{i,j},\hat{\theta}_{i,j'}) \nonumber \\
+\label{vm} & & \mbox{} + \sum_{i \neq
+i'}^{n}\frac{1}{\pi_{i}\pi_{i'}}\sum_{j=1}^{m_{i}}\sum_{j'=1}^{m_{i}}y_{i,j}y_{i',j'}\widehat{\COV}(\hat{\theta}_{i,j},\hat{\theta}_{i',j'}),
+\end{eqnarray}
+where $\widehat{\VAR}(\hat{\theta}_{i,j})$ and
+$\widehat{\COV}(\hat{\theta}_{i,j},\hat{\theta}_{i,j'})$ are given
+by Equation~\ref{varthetahat} and Equation~\ref{covthetahat}.
+
+\citet{SS1989} suggested estimating $\VAR(\hat{\tau}_{LR})$ by
+combining $v_{m}$ with $v_{s}$ (Equation~\ref{vs}) and $v_{d}$
+(Equation~\ref{vd}).  \citet{Wong1996} showed that while $v_{m}$ was
+a consistent estimator of $V_{m}$, $v_{s}$ and $v_{d}$ were biased
+(away from 0) when detection parameters were estimated. She derived
+the following consistent estimators of $V_{s}$ and $V_{d}$,
+$v_{s}^{*}$ and $v_{d}^{*}$ respectively,
+ for the case where detection probabilities are estimated using logistic regression:
+\begin{eqnarray}
+v_{s}^{*} & = & \sum_{i=1}^{n}\frac{1-\pi_{i}}{\pi_{i}^{2}}\hat{\tau}_{i}^{2}+\sum_{i \neq i'}^{n}\frac{\pi_{i,i'}-\pi_{i}\pi_{i'}}{\pi_{i,i'}\pi_{i}\pi_{i'}}\hat{\tau}_{i}\hat{\tau}_{i'} -
+ \sum_{i=1}^{n}\frac{1-\pi_{i}}{\pi_{i}^{2}}\sum_{j=1}^{m_{i}}y_{i,j}^2(\hat{\theta}_{i,j}^{2}-\hat{\theta}_{i,j}) \nonumber \\
+& & \mbox{} -\sum_{i=1}^{n}\frac{1-\pi_{i}}{\pi_{i}^{2}}\sum_{j \neq j'}^{m_{i}}y_{i,j}y_{i,j'}\widehat{\COV}(\hat{\theta}_{i,j}, \hat{\theta}_{i,j'}) \nonumber \\
+& & \mbox{} - \sum_{i \neq i'}^{n}\frac{\pi_{i,i'}-\pi_{i}\pi_{i'}}{\pi_{i,i'}\pi_{i}\pi_{i'}}\sum_{j=1}^{m_{i}}\sum_{j'=1}^{m_{i'}}y_{i,j}y_{i',j'}\widehat{\COV}(\hat{\theta}_{i,j},\hat{\theta}_{i',j'})\\
+v_{d}^{*} & = &
+\sum_{i=1}^{n}\frac{1}{\pi_{i}^{2}}\sum_{j=1}^{m_{i}}y_{i,j}^2(\hat{\theta}_{i,j}^{2}-\hat{\theta}_{i,j}-\widehat{\VAR}(\hat{\theta}_{i,j}))
+\end{eqnarray}
+
+Although these estimators have not been published in peer-reviewed
+literature, they were used by \citet{Lubow2002} to analyze data
+collected on elk (\emph{Cervus elaphus}) data in Rocky Mountain
+National park (Colorado, USA).
+
+\subsection{Confidence intervals}
+
+The sampling distribution of $\hat{\tau}$ is often skewed right, and
+as a result, confidence intervals constructed under an asymptotic
+normality assumption often fail to have correct coverage rates
+\citep{Wong1996, CoganDief1998}.  Using simulated data,
+\citet{Wong1996} explored several alternative methods for
+constructing confidence intervals.  Although the relative
+performance of the various methods depended on the specifics of the
+simulation, intervals constructed under the assumption that
+($\hat{\tau}-T$) is lognormally distributed, where $T$ is the total
+number of animals seen, tended to perform well across a range of
+simulation scenarios. Using this approach, confidence limits are
+formed using:
+\begin{eqnarray}
+ LCL & = & T + [(\hat{\tau}-T)/C]\sqrt{(1+cv^2)} \\
+ UCL & = & T+[(\hat{\tau}-T)C]\sqrt{(1+cv^2)},
+\end{eqnarray}
+where $LCL$ and $UCL$ are the lower and upper confidence limits,
+respectively, $cv^2 = var(\hat{\tau})/(\hat{\tau}-T)^2$, and $C =
+\exp[z_{\alpha/2}\sqrt{\ln{(1+cv^2)}}]$.
+
+\section{Package description and example applications}
+The \pkg{SightabilityModel} package implements \citet{SS1989}'s
+logistic regression sightability abundance estimator via the
+\code{Sight.Est} function. This function requires, as arguments, the
+original sightability trial data frame and an operational survey
+data frame. Alternatively, one can specify a pre-fitted model (using
+$\hat{\beta}$ and $\hat{\Sigma}$ as arguments to \code{Sight.Est}).
+Covariates used in the sightability model must be present in both
+data frames (with identical naming conventions in both).  The
+operational data frame also requires variables named \code{total}
+(containing the animal counts, $y_{i,j}$) and \code{subunit} (a
+sample plot identifier).  Most operational surveys employ stratified
+random sampling designs to select survey plots (as a means of
+increasing precision), with plots allocated to strata based on their
+expected animal densities \citep[e.g., `low', `medium', and
+`high';][]{FiebLenarz}. Thus, the operational data frame must also
+include a variable named \code{stratum}, which serves as a stratum
+identifier (\code{stratum} should take on a single value for
+non-stratified surveys). Lastly, the user must supply a data frame
+containing sampling information, including \code{nh} (number of
+sampled plots in each stratum), \code{Nh} (number of population
+units in each stratum), and a variable named \code{stratum} (taking
+on the same values as the \code{stratum} variable in the operational
+data frame); for non-stratified survey designs this data frame will
+contain a single record.
+
+      The \code{Sight.Est} function
+fits a logistic regression model to the sightability data frame and
+applies the model to data from the operational survey to estimate
+population abundance, $\hat{\tau}$.  The variance of  $\hat{\tau}$
+can be estimated using $\widehat{\VAR}(\hat{\tau}_{LR}) =
+v_{1}+v_{2} + v_{m}$ as suggested by \citet{samuel1992} or using
+\citet{Wong1996}'s estimator $\widehat{\VAR}(\hat{\tau}_{LR}) =
+v_{s}^{*} +v_{d}^{*}+v_{m}$ (recommended).  Alternatively, one can
+use a nonparametric bootstrap to aid in the estimation of the
+variance components (see Example 5 in the next section).
+
+
+\subsection{ Example 1:  Application to moose survey data}
+We illustrate the software using data collected from moose
+(\emph{Alces alces}) in northeastern Minnesota \citep{GiudFieb2011}.
+Sightability trial data were collected from 2005-2007 (124 trials
+were conducted and the results are captured in the \code{exp.m} data
+frame); operational survey data from 2004-2007 are also included in
+the package (\code{obs.m} data frame).  Lastly, sampling information
+from the 2004-2007 operational surveys is captured in the
+\code{sampinfo.m} data frame.
+
+<<>>=
+ options(prompt = "R> ", continue = "+  ", width = 70, useFancyQuotes = FALSE)
+@
+<<>>=
+ library("SightabilityModel")
+ data("obs.m")
+ data("exp.m")
+ data("sampinfo.m")
+@
+
+<<>>=
+exp.m[1:5, ] # first 5 observations
+@
+The experimental data frame contains 4 variables: \code{year} (year
+of the test trial), \code{observed} (equal to 1 if the moose was
+observed and 0 otherwise), \code{voc} (amount of screening cover
+within 4 animal lengths of the first animal seen), and
+\code{grpsize} (number of animals associated with the radiocollared
+animal, i.e., cluster size).  Each row represents an independent
+sightability trial, with \code{observed} representing the random
+variables ($w_{i})$.
+<<>>=
+obs.m[1:5, ]
+@
+Each record in the operational data frame corresponds to an
+independently sighted group of moose, with variables that capture
+animal-specific covariates, $x_{i} = $ (\code{voc, grpsize}), for
+potential inclusion in the detection model.  The data frame also
+contains plot-level information (\code{stratum} = stratum identifer,
+\code{subunit} = sample plot identifier). Lastly, \code{total} gives
+the total number of animals observed in each independently sighted
+group (note:  this variable is redundant with \code{grpsize};  the
+latter variable is included to allow one to model detection
+probabilities as a function of group size).
+
+Lastly, the sampinfo.m data frame contains sampling information
+associated with the operational surveys conducted in years
+2004-2007. Specifically, it contains the number of sampled $(n_{h})$
+and population $(N_{h})$ units in each stratum:
+<<>>=
+sampinfo.m
+@
+The \code{Sight.Est} function is used both to fit a specified
+logistic regression model and estimate population abundance in a
+single step. Below, we illustrate the code using operational survey
+data collected in 2004 only, modeling detection probabilities as a
+function of visual obstruction (i.e., \code{voc}; note, an
+intercept-only model, in which  detection probabilities are assumed
+to be constant, can be specified using \code{observed~1} in the
+\code{Sight.Est} function):
+<<>>=
+est.2004 <- Sight.Est(observed ~ voc, odat = subset(obs.m,
+    year == 2004), sdat = exp.m, sampinfo = subset(sampinfo.m,
+    year == 2004))
+@
+By default, \citet{Wong1996}'s estimators are used to estimate
+$\VAR(\hat{\tau}_{LR})$, and confidence intervals are formed under
+the assumption that ($\hat{\tau}-T$) is lognormally distributed.
+The print function provides information on the fitted sightability
+model and sampling statistics. In addition, it provides the point
+estimate and confidence interval as well as estimates of each of the
+3 variance components.
+<<>>=
+print(est.2004)
+@
+Note: the variance component estimates provide useful information
+for improving future surveys.  In particular, the first and third
+variance components (sampling uncertainty and parameter uncertainty
+associated with the detection model, respectively) are under control
+of the observer. Sampling uncertainty can be reduced by surveying a
+larger number of aerial plots or by implementing a more efficient
+sampling design \citep{FiebLenarz}, whereas parameter uncertainty
+can be reduced by conducting more sightability trials. The large
+variance component associated with model parameters (i.e.,
+\code{VarMod}), suggests that conducting additional sightability
+trials would be useful, particularly since the benefits would be
+realized in multiple years (i.e., all estimates using the same
+sightability model will be improved by reducing this variance
+component).
+
+For a more concise summary, one can use the \code{summary} function,
+which returns the point estimate and confidence interval:
+<<>>=
+summary(est.2004)
+@
+
+\subsection{Example 2a:  Correlated stratum-specific estimates}
+Stratified random sampling is often used to select plots in aerial
+surveys. Unlike traditional survey estimates that employ stratified
+random sampling, stratum-specific abundance estimates will be
+correlated when a common detection model is used to correct counts
+in all strata \citep{FiebGiud2008}. Unfortunately, many authors have
+mistakenly assumed stratum-specific variances will sum to give the
+total variance; ignoring the correlation among stratum-specific
+estimates will typically result in an underestimate of the total
+variance \citep{FiebGiud2008}.  This next example highlights this
+point.
+
+We begin by analyzing 2004 survey data for each stratum separately,
+storing the results in a matrix named \code{tau.hats}:
+<<>>=
+tau.hats <- matrix(NA, 3, 5)
+rownames(tau.hats) <- c("Stratum 1", "Stratum 2", "Stratum 3")
+for(i in 1:3){
+  tempsamp <- sampinfo.m[i, ]
+  tempobs <- obs.m[obs.m$year == 2004 & obs.m$stratum == i, ]
+  temp <- Sight.Est(observed ~ voc, odat = tempobs, sdat = exp.m,
+      sampinfo = tempsamp)
+  tau.hats[i, ] <- temp$est
+}
+colnames(tau.hats) <- names(temp$est)
+tau.hats<-round(tau.hats, 0)
+print(format(tau.hats, big.mark = ","),  quote = FALSE)
+@
+We then compare the sum of the stratum-specific abundance estimates
+and variance component estimates to those obtained by applying the
+\code{Sight.Est} function once (i.e., to data from all strata).
+<<>>=
+est.2004 <- Sight.Est(observed ~ voc, odat = subset(obs.m,
+    year == 2004), sdat = exp.m, sampinfo = subset(sampinfo.m,
+    year == 2004))
+print(format(round(est.2004$est, 0), big.mark = ","), quote = FALSE)
+
+naive.tau.hats<-round(apply(tau.hats[1:3, ], 2, sum), 0)
+print(format(naive.tau.hats, big.mark = ","), quote = FALSE)
+@
+
+Note that the point estimate formed by summing the stratum-specific
+abundance estimates is correct, but the sum of the stratum-specific
+variances is too small (5,961,086 compared to 9,717,638).  The
+difference is due to the positive covariance among the
+stratum-specific estimates as a result of applying the same
+detection model to each stratum (note the variance components due to
+sampling and sightabilty are independent across strata).
+
+Thus, if stratum-specific estimates are of interest, they can be
+obtained using separate calls to \code{Sight.est}, but the variance
+estimate for the total population size (i.e., aggregated across
+strata) requires that all data be processed simultaneously (e.g.,
+using an additional call to \code{Sight.Est} with all of the
+operational survey data included).
+
+\subsection{Example 2b:  Non-independent population estimates}
+Often, management agencies are interested in changes in population
+size (e.g., from one year to the next).  Similar to stratum-specific
+estimates, population estimates will not be independent across years
+if they are formed using the same sightability model. Typically,
+estimates will exhibit a positive covariance, making tests (for a
+difference between years) conservative if estimates are assumed to
+be independent.
+
+The \code{vardiff} function can be used to estimate the variance of
+a difference between two population estimates, while accounting for
+any covariance between the estimates due to using the same
+sightability model. The function takes as arguments 2 sightability
+model objects created from separate calls to the \code{Sight.Est}
+function.
+<<>>=
+est.2006 <- Sight.Est(observed ~ voc, odat = subset(obs.m,
+    year == 2006), sdat = exp.m, subset(sampinfo.m,
+    year == 2006))
+est.2007 <- Sight.Est(observed ~ voc, odat = subset(obs.m,
+    year == 2007), sdat = exp.m, subset(sampinfo.m,
+    year == 2007))
+
+vdiff<-vardiff(est.2006, est.2007)
+print(format(vdiff, nsmall = 0, big.mark = ","), quote = FALSE)
+@
+
+<<>>=
+naive<-est.2006$est[2] + est.2007$est[2]
+print(format(naive, nsmall = 0, big.mark = ","), quote = FALSE)
+@
+As expected, the estimates of moose abundance in 2006 and 2007
+exhibit a positive covariance due to using the same sightability
+model to correct for detection. Thus, the naive estimate (formed by
+summing the individual variances as though the two estimates were
+independent) is too large.  We therefore recommend using the
+\code{vardiff} function whenever estimating differences in
+population size across years. We also provide a function
+(\code{varlog.lam}) to calculate the variance of the log rate of
+change between two population estimates (i.e.,
+$var(log(\hat{\tau}_{2}/\hat{\tau}_{1}))$.
+
+Lastly, it is interesting to note that naive estimates of variance
+(assuming independence) were too small in Example 2a, but too large
+in Example 2b. In both cases, individual estimates were positively
+correlated because they were formed using the same sightability
+model.  These results follow from the fact that Example 1a involves
+estimation of a sum [with $var(x+y) = var(x) + var(y) +2cov(x,y)$]
+whereas Example 1b involves estimation of a difference [with
+$var(x-y) = var(x)+var(y)-2cov(x,y)$].
+
+\subsection{Example 3:  Non-linear detection functions}
+\citet{GiudFieb2011} considered models in which the logit detection
+probability varied non-linearly as a function of \code{voc}. In this
+next example, we show how the \code{ns} function in the splines
+package of Program \proglang{R} \citep{RCDT2010} can be used to
+allow for non-linear sightability models (on the logit scale). To do
+so, we need to create the spline basis functions (in both
+experimental and operational data frames) first before calling
+\code{Sight.Est}. Below, we allocate 3 degrees of freedom to model
+the effect of \code{voc} on the probability of detection.
+<<>>=
+library("splines")
+@
+
+<<>>=
+exp.m$voc.ns <- ns(exp.m$voc, df = 3)
+obs.m$voc.ns <- predict(exp.m$voc.ns, obs.m$voc)
+ns.est <- Sight.Est(observed ~ voc.ns, odat = subset(obs.m,
+    year == 2004), sdat = exp.m, subset(sampinfo.m,
+    year == 2004))
+ns.est$sight
+print(format(round(ns.est$est, 0),  big.mark = ","), quote = FALSE)
+@
+
+\subsection{Example 4:  Using multi-model inference techniques}
+
+Many sightability studies collect a wide array of covariate data for
+relatively few numbers of sightability trials.  Developing
+predictive models that perform well on future data can be
+challenging in these situations \citep{GiudFieb2011}. Model
+averaging can serve as a form of shrinkage, and thus may help to
+improve predictive accuracy when applying the model to new data
+\citep{burnham2002model, GiudFieb2011}. \citet{burnham2002model}
+describe a popular approach for performing model averaging in
+wildlife research, including the calculation of unconditional
+variance-covariance matrices that attempt to account for model
+selection uncertainty.
+
+Model-averaged parameter estimates and unconditional
+variance-covariance matrices can be used to estimate abundance, by
+passing these values as arguments to the \code{Sight.Est} function.
+For illustrative purposes, we consider multi-model inference results
+from \citet{Rice2009}, applied to an operational survey of mountain
+goats in Olympic National Park, Washington. Model-averaged
+regression parameters (for covariates \code{GroupSize},
+\code{Terrain}, and \code{pct.VegCover}), and the corresponding
+unconditional variance-covariance matrix from \citet{Rice2009} are
+stored in a list named g.fit:
+<<>>=
+data("g.fit")
+@
+<<>>=
+g.fit
+@
+<<>>=
+data("gdat")
+@
+<<>>=
+gdat[1:5, ]
+@
+We create a data frame to hold the sampling information for the
+operational survey:
+<<>>=
+sampinfo<-data.frame(nh = c(6, 23, 11), Nh =
+c(6, 27, 65), stratum=c(1,2,3))
+@
+Although 3 strata were surveyed, no mountain goats were observed in
+the 11 low stratum plots.
+<<>>=
+table(gdat$stratum)
+@
+Thus, we only supply the first two records of \code{sampinfo} when
+we call \code{Sight.Est}. We also need to specify \code{bet=beta.g}
+and \code{varbet=varbeta.g} to indicate that we are supplying our
+own regression model (fit outside of \code{Sight.Est}):
+<<>>=
+goat.est<-Sight.Est(observed ~ GroupSize + Terrain + pct.VegCover,
+    odat = gdat,  sampinfo = sampinfo[1:2, ], bet = g.fit$beta.g,
+    varbet = g.fit$varbeta.g)
+print(goat.est)
+@
+
+\subsection{Example 5:  Use of the bootstrap to estimate variance components}
+\citet{FiebGiud2008}  used simulations to explore the reliability of
+the estimators of $\VAR(\theta_{i,j})$ and $\COV(\theta_{i,j},
+\theta_{i',j'})$ given in Equation~\ref{varthetahat} and
+\ref{covthetahat}. They found that these variance and covariance
+terms were generally
+ underestimated when a small number of sightability trials were used to estimate $\beta$ (e.g., $< 100$), and
+suggested a non-parametric bootstrap  (e.g., resampling sightability
+data with replacement) might be useful for estimating these terms
+\citep[see also e.g.,\,][]{Wong1996, CoganDief1998}.
+
+If the user specifies \code{Vm.boot = TRUE} when calling the
+\code{Sight.Est} function, $\widehat{\VAR}(\theta_{i,j})$ and
+$\widehat{\COV}(\theta_{i,j}, \theta_{i',j'})$ will be estimated by
+applying a non-parametric bootstrap to the sightability data frame.
+Specifically, the logistic regression model is fit to \code{nboot}
+bootstrap data sets and $\VAR(\theta_{i,j})$ and $\COV(\theta_{i,j},
+\theta_{i',j'})$ are estimated using  empirical variance/covariances
+across bootstrap replicates.  These estimates are then plugged into
+formulas used for estimating $V_{s}, V_{d}$, and $V_{m}$.
+
+In this example, we compare analytical and bootstrap estimates of
+variance (with 10,000 bootstrap replicates), considering only the
+subset of moose experimental data collected  in 2005 (representing a
+total of 39 sightability trials).
+<<>>=
+analytical.est <- Sight.Est(observed ~ voc, odat = subset(obs.m,
+   year == 2004), sdat = subset(exp.m, year == 2005), subset(sampinfo.m,
+   year == 2004), method = "Wong", logCI = T, alpha = 0.05,
+   Vm.boot = FALSE)
+print(format(round(analytical.est$est, 0), big.mark = ","), quote = FALSE)
+
+boot.est <- Sight.Est(observed ~ voc, odat = subset(obs.m,
+   year == 2004), sdat=subset(exp.m, year == 2005), subset(sampinfo.m,
+   year == 2004), method = "Wong", logCI = T, alpha = 0.05,
+   Vm.boot = TRUE, nboot = 10000)
+print(format(round(boot.est$est, 0), big.mark = ","), quote = FALSE)
+@
+
+As expected, the variance estimate calculated using the bootstrap is
+larger than the analytical estimate (constructed using  the
+estimators in Equation~\ref{varthetahat} and
+Equation~\ref{covthetahat}).
+
+\section{Future work}
+Another potential concern with applying the sightability model
+approach is that group size,  a key covariate in many detection
+models, is often estimated with error
+ \citep{CoganDief1998,Walsh2009}. In addition to problems associated with estimating regression parameters when covariates are subject to measurement error,
+  animal counts, $y_{i,j}$, will usually be too small.
+  \citet{Walsh2009} suggested a double observer approach to correct for this problem.  We hope to incorporate this option in a future version of the \pkg{SightabilityModel}
+  package.  In addition, we are currently exploring Bayesian implementations
+  that utilize data augmentation, similar to methods developed for
+  analyzing mark-recapture data with individual covariates
+  \citep{Royle,RoyleDorazio}.  Lastly, we hope to incorporate
+ sightability estimators of other population quantities (e.g.,
+ calf:cow ratios) as described by \citet{samuel1992}.
+
+
+%%\section{Future work}
+%%Group size stuff could be included, overall bootstrap, sex ratios, etc.
+\section*{Acknowledgements}
+This work was supported by the Minnesota Department of Natural
+Resources.  We thank John Giudice, Mark Lenarz, Kurt Jenkins, and
+Paul Griffin for helpful comments and for testing computer code.  We
+thank Duane Diefenbach, two anonymous reviewers, and the associate
+editor for suggestions that helped improve the clarity of the
+manuscript and computer code.
+
+
+\bibliography{vignette}
+
+\end{document}
