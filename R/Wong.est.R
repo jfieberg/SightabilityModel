@@ -1,3 +1,52 @@
+#' Sightability estimate with variance components estimator from Wong (1996)
+#' 
+#' Estimates population size, with variance estimated using Wong's (1996)
+#' estimator.  This function will usualled be called by Sight.Est function (but
+#' see details).
+#' 
+#' This function is called by Sight.Est, but may also be called directly by the
+#' user (e.g., in cases where the original sighability [test trial] data are
+#' not available, but the parameters and var/cov matrix from the logistic
+#' regression model is available in the literature).
+#' 
+#' @param total Number of animals in each independently sighted group
+#' @param srates Vector of plot-level sampling probabilities (same dimension as
+#' \code{total}).
+#' @param nh Number of sample plots in each stratum
+#' @param Nh Number of population plots in each stratum
+#' @param stratum Stratum identifiers (associated with the independently
+#' observed animal groups)
+#' @param subunit Plot ID (associated with the independently observed animal
+#' groups)
+#' @param covars Matrix of sightability covariates (associated with the
+#' independently observed animal groups)
+#' @param beta Logistic regression parameter estimates (from fitted
+#' sightability model)
+#' @param varbeta Estimated variance-covariance matrix for the logistic
+#' regression parameter estimates (from fitted sightability model)
+#' @param smat Estimated variance-covariance matrix for the inflation factors
+#' (1/probability of detection).  This is an n.animal x n.animal matrix, and is
+#' usually calculated within the Wong.est function.  Non-null values can be
+#' passed to the function (e.g., if a bootstrap is used to estimate uncertainty
+#' due to the estimated detection parameters).
+#' @return \item{tau.hat}{Sightability estimate of population size, tau^}
+#' \item{VarTot}{Estimated variance of tau^} \item{VarSamp}{Estimated variance
+#' component due to sampling aerial units} \item{VarSight}{Estimated variance
+#' component due to sighting process (i.e., series of binomial rv for each
+#' animal group)} \item{VarMod}{Estimated variance component due to estimating
+#' detection probabilities using test trial data}
+#' @author John Fieberg
+#' @seealso \code{\link{Sight.Est}}, \code{\link{SS.est}}
+#' @references Rice CG, Jenkins KJ, Chang WY (2009).  Sightability Model for
+#' Mountain Goats." The Journal of Wildlife Management, 73(3), 468- 478.
+#' 
+#' Steinhorst, R. K., and M.D. Samuel. (1989).  Sightability adjustment methods
+#' for aerial surveys of wildlife populations.  Biometrics 45:415-425.
+#' 
+#' Wong, C. (1996).  Population size estimation using the modified
+#' Horvitz-Thompson estimator with estimated sighting probabilities.
+#' Dissertation, Colorado State University, Fort Collins, USA.
+#' @keywords methods
 Wong.est <-
 function(total, srates, nh, Nh, stratum, subunit, covars, beta, varbeta, smat=NULL){
 

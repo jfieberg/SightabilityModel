@@ -1,3 +1,30 @@
+#' Estimates var/cov matrix of inflation factors (1/prob detection) using a
+#' non-parametric bootstrap.
+#' 
+#' Estimates var/cov matrix of inflation factors (1/prob detection) using a
+#' non-parametric bootstrap.  Called by function Sight.Est if Vm.boot = TRUE.
+#' 
+#' 
+#' @param total Number of animals in each independently sighted group
+#' @param srates Plot sampling probability (associated with the independently
+#' observed animal groups)
+#' @param stratum Stratum identifiers (associated with the independently
+#' observed animal groups)
+#' @param subunit Plot ID (associated with the independently observed animal
+#' groups)
+#' @param covars Matrix of sightability covariates (associated with the
+#' independently observed animal groups)
+#' @param betas Logistic regression parameter estimates (from fitted
+#' sightability model)
+#' @param varbetas Estimated variance-covariance matrix for the logistic
+#' regression parameter estimates (from fitted sightability model)
+#' @param nboots Number of bootstrap resamples.
+#' @return \item{smat }{Estimated variance-covariance matrix for the inflation
+#' factors theta = (1/probability of detection).  This is an n.animal x
+#' n.animal matrix. }
+#' @author John Fieberg
+#' @seealso \code{\link{Sight.Est}}
+#' @keywords methods
 covtheta <-
 function(total, srates, stratum, subunit, covars, betas, varbetas, nboots){
 

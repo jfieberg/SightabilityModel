@@ -1,3 +1,42 @@
+#' Calculates the variance of the log rate of change between 2 population
+#' estimates that rely on the same sightability model.
+#' 
+#' Calculates the variance of the log rate of change between 2 population
+#' estimates that rely on the same sightability model.
+#' 
+#' This function uses the delta method to calculate an approximate variance for
+#' the log rate of change, log(tau^[t+1])-log(tau^[t]), while accounting for
+#' the positive covariance between the two estimates (as a result of using the
+#' same sightability model to correct for detection).
+#' 
+#' @param sight1 Sightability model object for the first population estimate
+#' (formed by calling Sight.Est function)
+#' @param sight2 Sightability model object for the second population estimate
+#' (formed by calling Sight.Est function)
+#' @return \item{loglambda}{log rate of change = log(tau^[t+1]/tau^[t])}
+#' \item{varloglamda}{approximate variance of loglambda}
+#' @author John Fieberg
+#' @seealso \code{\link{vardiff}}
+#' @keywords methods
+#' @examples
+#' 
+#' # Example using moose survey data 
+#'   data(obs.m) # observational moose survey data
+#'   data(exp.m) # experimental moose survey data
+#'   data(sampinfo.m) # information on sampling rates
+#'  
+#' # Estimate population size in 2006 and 2007 
+#'   sampinfo <- sampinfo.m[sampinfo.m$year==2007, ]
+#'   tau.2007 <- Sight.Est(observed ~ voc, odat = obs.m[obs.m$year==2007, ],
+#'                           sdat = exp.m, sampinfo.m[sampinfo.m$year == 2007, ],
+#'                           method = "Wong", logCI = TRUE, alpha = 0.05, Vm.boot = FALSE) 
+#'   tau.2006 <- Sight.Est(observed ~ voc, odat = obs.m[obs.m$year==2006, ],
+#'                           sdat = exp.m, sampinfo.m[sampinfo.m$year == 2006, ], 
+#'                           method = "Wong", logCI = TRUE, alpha = 0.05, Vm.boot = FALSE)  
+#' 
+#' # Log rate of change 
+#'   varlog.lam(tau.2006, tau.2007)
+#' 
 varlog.lam <-
 function(sight1,sight2){
     if(sight1$call$form != sight2$call$form){

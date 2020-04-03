@@ -1,3 +1,17 @@
+#' Summarize sightability estimator
+#' 
+#' Calculates confidence interval (based on asympototic [normal or log-normal
+#' assumption])
+#' 
+#' 
+#' @aliases summary.sightest summary.sightest_ratio
+#' @param object Sightability object, output from call to Sight.Est function.
+#' @param ... arguments to be passed to or from other methods
+#' @return \item{Nhat or Ratiohat}{Sightability population estimate}
+#' \item{lcl}{Lower confidence limit} \item{ucl}{Upper confidence limit}
+#' @author John Fieberg and Carl James Schwarz
+#' @seealso \code{\link{Sight.Est}}, \code{\link{Sight.Est.Ratio}}
+#' @keywords summary
 summary.sightest <-
 function(object,...){
   # total number of animals seen

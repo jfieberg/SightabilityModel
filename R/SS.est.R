@@ -1,3 +1,47 @@
+#' Sightability estimate with variance components estimator from Steinhorst and
+#' Samuel (1989) and Samuel et al. (1992).
+#' 
+#' Estimates population size, with variance estimated using Steinhorst and
+#' Samuel (1989) and Samuel et al.'s (1992) estimator.  Usuaully, this function
+#' will be called by Sight.Est
+#' 
+#' 
+#' @param total Number of animals in each independently sighted group
+#' @param srates Plot-level sampling probability
+#' @param nh Number of sample plots in each stratum
+#' @param Nh Number of population plots in each stratum
+#' @param stratum Stratum identifiers (associated with the independently
+#' observed animal groups)
+#' @param subunit Plot ID (associated with the independently observed animal
+#' groups)
+#' @param covars Matrix of sightability covariates (associated with the
+#' independently observed animal groups)
+#' @param beta Logistic regression parameter estimates (from fitted
+#' sightability model)
+#' @param varbeta Estimated variance-covariance matrix for the logistic
+#' regression parameter estimates (from fitted sightability model)
+#' @param smat Estimated variance-covariance matrix for the inflation factors
+#' (1/probability of detection).  This is an n.animal x n.animal matrix, and is
+#' usually calculated within the SS.est function.  Non-null values can be
+#' passed to the function (e.g., if a bootstrap is used to estimate uncertainty
+#' due to the estimated detection parameters).
+#' @return \item{tau.hat}{Sightability estimate of population size, tau^}
+#' \item{VarTot}{Estimated variance of tau^} \item{VarSamp}{Estimated variance
+#' component due to sampling aerial units} \item{VarSight}{Estimated variance
+#' component due to sighting process (i.e., series of binomial rv for each
+#' animal group)} \item{VarMod}{Estimated variance component due to estimating
+#' detection probabilities using test trial data}
+#' @author John Fieberg
+#' @seealso \code{\link{Sight.Est}}, \code{\link{Wong.est}}
+#' @references
+#' 
+#' Steinhorst, R. K., and M.D. Samuel. 1989.  Sightability adjustment methods
+#' for aerial surveys of wildlife populations.  Biometrics 45:415-425.
+#' 
+#' Wong, C. 1996.  Population size estimation using the modified
+#' Horvitz-Thompson estimator with estimated sighting probabilities.
+#' Dissertation, Colorado State University, Fort Collins, USA.
+#' @keywords methods
 SS.est <-
 function(total, srates, nh, Nh, stratum, subunit, covars, beta, varbeta, smat = NULL){
 

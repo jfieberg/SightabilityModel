@@ -1,3 +1,17 @@
+#' Print method for sightability estimators
+#' 
+#' Prints fitted sightability model, sampling information, and sightability
+#' estimate (with confidence interval)
+#' 
+#' 
+#' @aliases print.sightest print.sightest_ratio
+#' @param x Sightability object, output from call to Sight.Est() or
+#' Sight.Est.Ratio() functions.
+#' @param ... arguments to be passed to or from other methods
+#' @author John Fieberg and Carl James schwarz
+#' @seealso \code{\link{Sight.Est}}, \code{\link{Sight.Est.Ratio}},
+#' \code{\link{summary.sightest}}, \code{\link{summary.sightest_ratio}}
+#' @keywords print
 print.sightest <-
 function(x,...){
     cat("Call:\n")

@@ -22,6 +22,59 @@
 #' 
 #' @export MoosePopR
 
+
+
+#' R function that gives the same functionality as the MoosePop program.
+#' 
+#' A stratified random sample of blocks in a survey area is conducted.  In each
+#' block, groups of moose are observed (usually throught an aerial survey).
+#' For each group of moose, the number of moose is recorded along with
+#' attributes such as sex or age.  MoosePopR() assumes that sightability is
+#' 100%.  Use the SightabilityModelR() function to adjust for sightability <
+#' 100%
+#' 
+#' 
+#' @param survey.data A data frame containing counts of moose in each group
+#' along with a variable identifying the stratum (see stratum.var) and block
+#' (see block.id.var)
+#' @param survey.block.area A data frame containing for each block, the block
+#' id (see block.id.var), the area of the block (see block.area.var). The data
+#' frame can contain information for other blocks that were not surveyed (e.g.
+#' for the entire population of blocks) and additional block information will
+#' be ignored.
+#' @param stratum.data A data fraem containing for each stratum, the stratum id
+#' (see stratum.var), the total number of blocks in the stratum (see
+#' stratum.blocks.var) and the total area of the stratum (see stratum.area.var)
+#' @param density,abundance,numerator,denominator Right-handed formula
+#' indentifying the variable(s) in the survey.data data frame for which the
+#' density, abundance, or ratio (numerator/denominator) are to be estimated.
+#' @param block.id.var Name of the variable in the survey.data data frame and
+#' survey.block.area data frame that identifies the block.id that links the
+#' block between the survey data and the block information.
+#' @param block.area.var Name of the variable in the survey.block.area data
+#' frame that contains the area of the blocks.
+#' @param stratum.var Name of the variable in the survey.data data frame and
+#' thee stratum.data data frame that identifies the stratum.
+#' @param stratum.blocks.var Name of the variable in the stratum.data data
+#' frame that contains the total number of blocks in the stratum.
+#' @param stratum.area.var Name of the variable in the stratum.data data.frame
+#' that contains the total stratum area.
+#' @param conf.level Confidence level used to create confidence intervals.
+#' @param survey.lonely.psu How to deal with lonely PSU within strata. See
+#' \code{surveyoptions} in the \code{survey} package.
+#' @return A data frame containing for each stratum and for all strata
+#' (identified as stratum id \code{.OVERALL}), the density, or abundance or
+#' ratio estimate along with its estimated standard error and large-sample
+#' normal-based confidence
+#' @author Schwarz, C. J. \email{cschwarz.stat.sfu.ca@@gmail.com}.
+#' @references To Be Added.
+#' @keywords surveys ~MoosePop ~moose
+#' @examples
+#' 
+#'  
+#' ##---- See the vignettes for examples on how to run this analysis.
+#' 
+#' 
 MoosePopR <- function(
       survey.data,
       survey.block.area,
