@@ -1,4 +1,5 @@
 # Print method for sightability estimates of a ratio
+#' @export
 
 print.sightest_ratio <-
 function(x,...){

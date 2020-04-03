@@ -12,6 +12,8 @@
 #' @seealso \code{\link{Sight.Est}}, \code{\link{Sight.Est.Ratio}},
 #' \code{\link{summary.sightest}}, \code{\link{summary.sightest_ratio}}
 #' @keywords print
+#' @export
+
 print.sightest <-
 function(x,...){
     cat("Call:\n")

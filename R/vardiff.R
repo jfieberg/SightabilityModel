@@ -40,7 +40,8 @@
 #' 
 #' # variance after subtracting positvie covariance
 #'   vardiff(tau.2007, tau.2006)
-#' 
+#'
+#' @export vardiff 
 vardiff <-
 function(sight1, sight2){
     if(sight1$call$form != sight2$call$form){

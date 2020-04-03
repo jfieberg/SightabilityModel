@@ -25,71 +25,6 @@
 
 
 
-
-#' R function that interfaces with the SightabilityModel package and gives
-#' similar functionalty as the AerialSurvey program
-#' 
-#' A stratified random sample of blocks in a survey area is conducted.  In each
-#' block, groups of moose are observed (usually throught an aerial survey).
-#' For each group of moose, the number of moose is recorded along with
-#' attributes such as sex or age.
-#' 
-#' The SightabilityModelR() function adjusts for sightability < 100%
-#' 
-#' 
-#' @param survey.data A data frame containing counts of moose in each group
-#' along with a variable identifying the stratum (see stratum.var) and block
-#' (see block.id.var)
-#' @param survey.block.area A data frame containing for each block, the block
-#' id (see block.id.var), the area of the block (see block.area.var). The data
-#' frame can contain information for other blocks that were not surveyed (e.g.
-#' for the entire population of blocks) and additional block information will
-#' be ignored.
-#' @param stratum.data A data fraem containing for each stratum, the stratum id
-#' (see stratum.var), the total number of blocks in the stratum (see
-#' stratum.blocks.var) and the total area of the stratum (see stratum.area.var)
-#' @param density,abundance,numerator,denominator Right-handed formula
-#' indentifying the variable(s) in the survey.data data frame for which the
-#' density, abundance, or ratio (numerator/denominator) are to be estimated.
-#' @param sight.formula A formula that idenfies the model used to estimate
-#' sightablity. For example \code{observed ~ VegCoverClass} would indicate that
-#' sightability is a function of the \code{VegCoverClass} variable in the
-#' survey data. The left hand variable is arbitrary. The right hand variables
-#' must be present in the survey.data data frame.
-#' @param sight.beta The vector of estimated cofficients for the logistic
-#' regression sightability model.
-#' @param sight.beta.cov The covariance matrix of \code{sight.beta}
-#' @param sight.logCI Should confidence intervals for the sightability adjusted
-#' estimates be computed using a normal-based confidence interval on
-#' \code{log(abundance)}
-#' @param sight.var.method What method should be used to estimate the variances
-#' after adjusting for sightability.
-#' @param block.id.var Name of the variable in the survey.data data frame and
-#' survey.block.area data frame that identifies the block.id that links the
-#' block between the survey data and the block information.
-#' @param block.area.var Name of the variable in the survey.block.area data
-#' frame that contains the area of the blocks.
-#' @param stratum.var Name of the variable in the survey.data data frame and
-#' thee stratum.data data frame that identifies the stratum.
-#' @param stratum.blocks.var Name of the variable in the stratum.data data
-#' frame that contains the total number of blocks in the stratum.
-#' @param stratum.area.var Name of the variable in the stratum.data data.frame
-#' that contains the total stratum area.
-#' @param conf.level Confidence level used to create confidence intervals.
-#' @return A data frame containing for each stratum and for all strata
-#' (identified as stratum id \code{.OVERALL}), the density, or abundance or
-#' ratio estimate along with its estimated standard error and large-sample
-#' normal-based confidence interval.  Additional information on the components
-#' of variance is also reported.
-#' @author Schwarz, C. J. \email{cschwarz.stat.sfu.ca@@gmail.com}.
-#' @references To Be Added.
-#' @keywords ~AerialSurvey ~MoosePop
-#' @examples
-#' 
-#'  
-#' ##---- See the vignettes for examples on how to run this analysis.
-#' 
-#' 
 SightabilityPopR <- function(
       survey.data,
       survey.block.area,
@@ -238,7 +173,7 @@ SightabilityPopR <- function(
 # make sure that variables in sightability model are present on the survey.data dataframe
   #browser()
   if(is.null(sight.formula))stop("A sightability formula must be specified")
-  if(!is.formula(sight.formula))stop("A sightability model must be a valid formula")
+  if(!plyr::is.formula(sight.formula))stop("A sightability model must be a valid formula")
   xvars <- formula.tools::rhs.vars(sight.formula)
   if( !all(xvars %in% names(survey.data)))stop("Sightability model uses variables not in survey data")
   # check if any missing values

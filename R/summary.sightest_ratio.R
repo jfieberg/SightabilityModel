@@ -1,5 +1,5 @@
 # summary method for ratio estimate from sightability model
-
+#' @export 
 summary.sightest_ratio <-
 function(object,...){
   # ratio of numerator and denominator

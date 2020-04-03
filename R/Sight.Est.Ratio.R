@@ -52,7 +52,6 @@
 #' 
 #' @param method method for estimating variance of the abundance estimator.
 #' Should be one of ("Wong", "SS").  See details for more information.
-#' Currently only the Wong method for estimating variances is implemented.
 #' @param logCI Boolean variable, default (= TRUE), indicates the confidence
 #' interval should be constructed under the assumption that (tau^ - T) is
 #' lognormally distributed, where T is the total number of animals observed
@@ -68,7 +67,7 @@
 #' @param varbet variance-covariance matrix for beta^ (if the sightability
 #' model is not to be fit by Sight.Est).  Make sure the order is consistent
 #' with the specification in the "form" argument.
-#' @return An object of class \code{sightest.ratio}, a list that includes the
+#' @return An object of class \code{sightest_ratio}, a list that includes the
 #' following elements: \item{sight.model}{the fitted sightability model}
 #' \item{est}{ratio estimate, ratio.hat,abundance estimate [tau.hat] and its
 #' estimate of uncertainty [Varratio] as well as variance components due to
@@ -119,6 +118,9 @@
 #'     logCI = TRUE, alpha = 0.05, Vm.boot = FALSE) 
 #' 
 #' 
+#' @export Sight.Est.Ratio
+
+
 Sight.Est.Ratio <-
 function(form, sdat=NULL, odat, sampinfo, method="Wong", logCI=TRUE, alpha=0.05, Vm.boot = FALSE, nboot = 1000, bet = NULL, varbet = NULL){
 

@@ -148,7 +148,12 @@
 #'          type = "b", lty = 2, add = TRUE)
 #'     axis(side = 1, at = 2004:2007, labels = 2004:2007)  
 #'   }
-#' 
+#'
+#' @export Sight.Est
+#' @import stats
+#' @import utils
+
+
 Sight.Est <-
 function(form, sdat=NULL, odat, sampinfo, method="Wong", logCI=TRUE, alpha=0.05, Vm.boot = FALSE, nboot = 1000, bet = NULL, varbet = NULL){
 

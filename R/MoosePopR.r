@@ -15,66 +15,17 @@
 #' @template author 
 #' @template references
 #' @keywords ~MoosePop ~moose surveys
+#' @import formula.tools
+#' @import survey
 #' @importFrom Matrix bdiag 
 #' @examples
 #'  
 #' ##---- See the vignettes for examples on how to run this analysis.
 #' 
+####' @import formula.tools
 #' @export MoosePopR
 
 
-
-#' R function that gives the same functionality as the MoosePop program.
-#' 
-#' A stratified random sample of blocks in a survey area is conducted.  In each
-#' block, groups of moose are observed (usually throught an aerial survey).
-#' For each group of moose, the number of moose is recorded along with
-#' attributes such as sex or age.  MoosePopR() assumes that sightability is
-#' 100%.  Use the SightabilityModelR() function to adjust for sightability <
-#' 100%
-#' 
-#' 
-#' @param survey.data A data frame containing counts of moose in each group
-#' along with a variable identifying the stratum (see stratum.var) and block
-#' (see block.id.var)
-#' @param survey.block.area A data frame containing for each block, the block
-#' id (see block.id.var), the area of the block (see block.area.var). The data
-#' frame can contain information for other blocks that were not surveyed (e.g.
-#' for the entire population of blocks) and additional block information will
-#' be ignored.
-#' @param stratum.data A data fraem containing for each stratum, the stratum id
-#' (see stratum.var), the total number of blocks in the stratum (see
-#' stratum.blocks.var) and the total area of the stratum (see stratum.area.var)
-#' @param density,abundance,numerator,denominator Right-handed formula
-#' indentifying the variable(s) in the survey.data data frame for which the
-#' density, abundance, or ratio (numerator/denominator) are to be estimated.
-#' @param block.id.var Name of the variable in the survey.data data frame and
-#' survey.block.area data frame that identifies the block.id that links the
-#' block between the survey data and the block information.
-#' @param block.area.var Name of the variable in the survey.block.area data
-#' frame that contains the area of the blocks.
-#' @param stratum.var Name of the variable in the survey.data data frame and
-#' thee stratum.data data frame that identifies the stratum.
-#' @param stratum.blocks.var Name of the variable in the stratum.data data
-#' frame that contains the total number of blocks in the stratum.
-#' @param stratum.area.var Name of the variable in the stratum.data data.frame
-#' that contains the total stratum area.
-#' @param conf.level Confidence level used to create confidence intervals.
-#' @param survey.lonely.psu How to deal with lonely PSU within strata. See
-#' \code{surveyoptions} in the \code{survey} package.
-#' @return A data frame containing for each stratum and for all strata
-#' (identified as stratum id \code{.OVERALL}), the density, or abundance or
-#' ratio estimate along with its estimated standard error and large-sample
-#' normal-based confidence
-#' @author Schwarz, C. J. \email{cschwarz.stat.sfu.ca@@gmail.com}.
-#' @references To Be Added.
-#' @keywords surveys ~MoosePop ~moose
-#' @examples
-#' 
-#'  
-#' ##---- See the vignettes for examples on how to run this analysis.
-#' 
-#' 
 MoosePopR <- function(
       survey.data,
       survey.block.area,
@@ -189,26 +140,26 @@ MoosePopR <- function(
      
   # extract the variables from the formula and check that valid
   if(Type=="D"){
-    density = rhs.vars(density)
+    density = formula.tools::rhs.vars(density)
     if(length(density)>1)stop("Only one variable for density formula")
     if(!density %in% names(survey.data))stop("Density variable not in survey data for ",density)
     if(!is.numeric(survey.data[, density]))stop("Density variable in survey data not numeric for ", density)
     if(any(is.na(survey.data[,density])))stop("Missing data not allowed in survey data data values for ", density)
   }
   if(Type=="A"){
-    abundance = rhs.vars(abundance)
+    abundance = formula.tools::rhs.vars(abundance)
     if(length(abundance)>1)stop("Only one variable for abundance formula")
     if(!abundance %in% names(survey.data))stop("abundance variable not in survey data for ",abundance)
     if(!is.numeric(survey.data[, abundance]))stop("abundance variable in survey data not numeric for ", abundance)
     if(any(is.na(survey.data[,abundance])))stop("Missing data not allowed in survey data data values for ", abundance)
   }
   if(Type=="R"){
-    numerator = rhs.vars(numerator)
+    numerator = formula.tools::rhs.vars(numerator)
     if(length(numerator)>1)stop("Only one variable for numerator formula")
     if(!numerator %in% names(survey.data))stop("numerator variable not in survey data for ",numerator)
     if(!is.numeric(survey.data[, numerator]))stop("numerator variable in survey data not numeric for ", numerator)
     if(any(is.na(survey.data[,numerator])))stop("Missing data not allowed in survey data data values for ", numerator)
-    denominator = rhs.vars(denominator)
+    denominator = formula.tools::rhs.vars(denominator)
     if(length(denominator)>1)stop("Only one variable for denominator formula")
     if(!denominator %in% names(survey.data))stop("denominator variable not in survey data for ",denominator)
     if(!is.numeric(survey.data[, denominator]))stop("denominator variable in survey data not numeric for ", denominator)
@@ -240,10 +191,10 @@ MoosePopR <- function(
     # first the individual strata estimates
     stratum.res <- plyr::ddply(block.totals, stratum.var, function(x){
       if(nrow(x)>1){ # replicate data from this stratum
-         moose.design=svydesign(data=x,
+         moose.design=survey::svydesign(data=x,
             ids=~1,
             fpc=reformulate(stratum.blocks.var))
-         ratio.val <- svyratio(numerator=~Var1.total, 
+         ratio.val <- survey::svyratio(numerator=~Var1.total, 
                             denominator=reformulate(block.area.var), 
                             design=moose.design)
          ratio.var.ci <- confint(ratio.val, level=conf.level)
@@ -254,7 +205,7 @@ MoosePopR <- function(
                Var1.obs.total = sum(x$Var1.total),
                Var2.obs.total = sum(x[, block.area.var]),
                estimate   = coef(ratio.val),
-               SE         = SE(ratio.val),
+               SE         = survey::SE(ratio.val),
                conf.level = conf.level,
                LCL        = ratio.var.ci[1],
                UCL        = ratio.var.ci[2]
@@ -276,11 +227,11 @@ MoosePopR <- function(
       res.df
     })
     # Now get the overall density using a ratio estimator
-    moose.design=svydesign(data=block.totals,
+    moose.design=survey::svydesign(data=block.totals,
             ids=~1,
             strata=reformulate(stratum.var),
             fpc=reformulate(stratum.blocks.var))
-    sep.ratio.val <- svyratio(numerator=~Var1.total, 
+    sep.ratio.val <- survey::svyratio(numerator=~Var1.total, 
                              denominator=reformulate(block.area.var), 
                              design=moose.design,
                              separate=TRUE)
@@ -316,10 +267,10 @@ MoosePopR <- function(
     # first the individual strata estimates
     stratum.res <- plyr::ddply(block.totals, stratum.var, function(x){
       if(nrow(x)>1){ # replicate data from this stratum
-        moose.design=svydesign(data=x,
+        moose.design=survey::svydesign(data=x,
             ids=~1,
             fpc=reformulate(stratum.blocks.var))
-        ratio.val <- svyratio(numerator    =~Var1.total, 
+        ratio.val <- survey::svyratio(numerator    =~Var1.total, 
                             denominator =~Var2.total, 
                             design      =moose.design)
         ratio.var.ci <- confint(ratio.val, level=conf.level)
@@ -330,7 +281,7 @@ MoosePopR <- function(
                    Var1.obs.total = sum(x$Var1.total),
                    Var2.obs.total = sum(x$Var2.total),
                    estimate   = coef(ratio.val),
-                   SE         = SE(ratio.val),
+                   SE         = survey::SE(ratio.val),
                    conf.level = conf.level,
                    LCL        = ratio.var.ci[1],
                    UCL        = ratio.var.ci[2]
@@ -359,10 +310,10 @@ MoosePopR <- function(
     # So we estimate the density in each stratum for both variables to get the full vcov matrix
     stratum.cov <- plyr::dlply(block.totals, stratum.var, function(x){
       if(nrow(x)>1){
-         moose.design=svydesign(data=x,
+         moose.design=survey::svydesign(data=x,
                ids=~1,
                fpc=reformulate(stratum.blocks.var))
-         ratio.est <- svyratio(numerator=~Var1.total+Var2.total, 
+         ratio.est <- survey::svyratio(numerator=~Var1.total+Var2.total, 
                              denominator = reformulate(block.area.var), 
                              design=moose.design, covmat=TRUE)
       }

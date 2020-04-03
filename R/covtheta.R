@@ -25,6 +25,7 @@
 #' @author John Fieberg
 #' @seealso \code{\link{Sight.Est}}
 #' @keywords methods
+#' @export covtheta
 covtheta <-
 function(total, srates, stratum, subunit, covars, betas, varbetas, nboots){
 

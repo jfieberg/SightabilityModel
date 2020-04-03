@@ -12,6 +12,7 @@
 #' @author John Fieberg and Carl James Schwarz
 #' @seealso \code{\link{Sight.Est}}, \code{\link{Sight.Est.Ratio}}
 #' @keywords summary
+#' @export 
 summary.sightest <-
 function(object,...){
   # total number of animals seen

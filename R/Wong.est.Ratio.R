@@ -47,6 +47,7 @@
 #' Horvitz-Thompson estimator with estimated sighting probabilities.
 #' Dissertation, Colorado State University, Fort Collins, USA.
 #' @keywords methods
+#' @export Wong.est.Ratio
 Wong.est.Ratio <-
 function(numerator, denominator, srates, nh, Nh, stratum, subunit, covars, beta, varbeta, smat=NULL){
 

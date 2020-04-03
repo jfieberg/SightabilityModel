@@ -37,6 +37,7 @@
 #' # Log rate of change 
 #'   varlog.lam(tau.2006, tau.2007)
 #' 
+#' @export varlog.lam
 varlog.lam <-
 function(sight1,sight2){
     if(sight1$call$form != sight2$call$form){
