@@ -1,5 +1,6 @@
 \name{summary.sightest}
 \alias{summary.sightest}
+\alias{summary.sightest_ratio}
 \title{
 Summarize sightability estimator
 }
@@ -14,15 +15,15 @@ Calculates confidence interval (based on asympototic [normal or log-normal assum
   \item{...}{arguments to be passed to or from other methods}
 }
 \value{
-  \item{Nhat}{Sightability population estimate}
+  \item{Nhat or Ratiohat}{Sightability population estimate}
   \item{lcl}{Lower confidence limit}
   \item{ucl}{Upper confidence limit}
 }
 \author{
-John Fieberg
+John Fieberg and Carl James Schwarz
 }
 
 \seealso{
- \code{\link{Sight.Est}}
+ \code{\link{Sight.Est}}, \code{\link{Sight.Est.Ratio}}
 }
-\keyword{print} 
+\keyword{summary} 

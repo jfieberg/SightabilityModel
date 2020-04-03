@@ -153,6 +153,6 @@ function(total, srates, nh, Nh, stratum, subunit, covars, beta, varbeta, smat=NU
     names(out) <- c("tau.hat", "VarTot", "VarSamp", "VarSight", "VarMod")
     out2 <- NULL
     out2$est <- out
-    out2$var.method = "WONG"
+    out2$var.method = "Wong"
     out2
 }

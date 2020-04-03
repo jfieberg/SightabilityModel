@@ -1,2 +1,9 @@
+^Meta$
+^doc$
 ^.*\.Rproj$
 ^\.Rproj\.user$
+man-roxygen
+cran-comments*
+render-vignettes.R
+^CRAN-RELEASE$
+Testing-and-Simulation-Exercises

@@ -1,17 +1,18 @@
-\name{Wong.est}
-\alias{Wong.est}
+\name{Wong.est.Ratio}
+\alias{Wong.est.Ratio}
 \title{
-Sightability estimate with variance components estimator from Wong (1996)
+Sightability estimate of ratio with variance components estimator from Wong (1996)
 }
 \description{
-Estimates population size, with variance estimated using Wong's (1996) estimator.  This function will usualled be called by Sight.Est function (but see details).
+Estimates population ratio, with variance estimated using Wong's (1996) estimator.  This function will usualled be called by Sight.Est,Ratio() function (but see details).
 }
 \usage{
-Wong.est(total, srates, nh, Nh, stratum, subunit, covars, beta, varbeta, smat = NULL)
+Wong.est.Ratio(numerator, denominator, srates, nh, Nh, stratum, 
+               subunit, covars, beta, varbeta, smat = NULL)
 }
 \arguments{
-  \item{total}{
- Number of animals in each independently sighted group
+  \item{numerator, denominator}{
+ Number of animals in numerator and denominator of each independently sighted group
 }
   \item{srates}{
   Vector of plot-level sampling probabilities (same dimension as \code{total}).
@@ -45,15 +46,13 @@ Wong.est(total, srates, nh, Nh, stratum, subunit, covars, beta, varbeta, smat = 
 }
 }
 \details{
-  This function is called by Sight.Est, but may also be called directly by the user (e.g., in cases where the original sighability [test trial] data are not available, but 
+  This function is called by Sight.Est.Ratio, but may also be called directly by the user (e.g., in cases where the original sighability [test trial] data are not available, but 
   the parameters and var/cov matrix from the logistic regression model is available in the literature).
 }
 \value{
-  \item{tau.hat}{Sightability estimate of population size, tau^}
-  \item{VarTot}{Estimated variance of tau^}
-  \item{VarSamp}{Estimated variance component due to sampling aerial units}
-  \item{VarSight}{Estimated variance component due to sighting process (i.e., series of binomial rv for each animal group)}
-  \item{VarMod}{Estimated variance component due to estimating detection probabilities using test trial data}
+  \item{ratio.hat}{Sightability estimate of ratio, ratio^}
+  \item{Vartot}{Estimated variance of ratio^}
+  \item{VarSamp, VarSight, VarMod}{Estimated variance component due to sampling, sightabiity, model are set to NA}
 }
 \references{
     Rice CG, Jenkins KJ, Chang WY (2009).  Sightability Model for Mountain Goats." The Journal of Wildlife Management, 73(3), 468- 478.
@@ -63,10 +62,10 @@ Wong.est(total, srates, nh, Nh, stratum, subunit, covars, beta, varbeta, smat = 
   Wong, C. (1996).  Population size estimation using the modified Horvitz-Thompson estimator with estimated sighting probabilities.  Dissertation, Colorado State University, Fort Collins, USA.
 }
 \author{
-John Fieberg
+Carl James Schwarz  cschwarz.stat.sfu.ca@gmail.com
 }
 
 \seealso{
-\code{\link{Sight.Est}}, \code{\link{SS.est}}
+\code{\link{Sight.Est.Ratio}}, \code{\link{SS.est.Ratio}}
 }
 \keyword{methods}

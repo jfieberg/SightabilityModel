@@ -1,18 +1,20 @@
-\name{SS.est}
-\alias{SS.est}
+\name{SS.est.Ratio}
+\alias{SS.est.Ratio}
 \title{
-  Sightability estimate with variance components estimator from Steinhorst and Samuel (1989) and Samuel et al. (1992).
+  Sightability estimate or ration with variance components estimator from Steinhorst and Samuel (1989) and Samuel et al. (1992).
+  This is merely a stub and has not been implemented.
 
 }
 \description{
-Estimates population size, with variance estimated using Steinhorst and Samuel (1989) and Samuel et al.'s (1992)
-estimator.  Usuaully, this function will be called by Sight.Est}
+Estimates ratio, with variance estimated using Steinhorst and Samuel (1989) and Samuel et al.'s (1992)
+estimator.  Usuaully, this function will be called by Sight.Est.Ratio()}
 \usage{
-SS.est(total, srates, nh, Nh, stratum, subunit, covars, beta, varbeta,  smat = NULL)
+SS.est.Ratio(numerator, denominator, srates, nh, Nh, stratum, 
+             subunit, covars, beta, varbeta,  smat = NULL)
 }
 \arguments{
-  \item{total}{
- Number of animals in each independently sighted group
+  \item{numerator, denominator}{
+ Number of animals for the numerator and denominator of the ratio in each independently sighted group
 }
   \item{srates}{
    Plot-level sampling probability  
@@ -41,16 +43,14 @@ Logistic regression parameter estimates (from fitted sightability model)
  Estimated variance-covariance matrix for the logistic regression parameter estimates (from fitted sightability model)
 }
   \item{smat}{
- Estimated variance-covariance matrix for the inflation factors (1/probability of detection).  This is an n.animal x n.animal matrix, and is usually calculated within the SS.est function. 
+ Estimated variance-covariance matrix for the inflation factors (1/probability of detection).  This is an n.animal x n.animal matrix, and is usually calculated within the SS.est.Ratio function. 
    Non-null values can be passed to the function (e.g., if a bootstrap is used to estimate uncertainty due to the estimated detection parameters).
 }
 }
 \value{
-  \item{tau.hat}{Sightability estimate of population size, tau^}
-  \item{VarTot}{Estimated variance of tau^}
-  \item{VarSamp}{Estimated variance component due to sampling aerial units}
-  \item{VarSight}{Estimated variance component due to sighting process (i.e., series of binomial rv for each animal group)}
-  \item{VarMod}{Estimated variance component due to estimating detection probabilities using test trial data}
+  \item{ratio.hat}{Sightability estimate of ratio, ratio^}
+  \item{VarRatio}{Estimated variance of ratio^}
+  \item{VarSamp, VarSight, VarMod}{Estimated variance component due to sampling, sightability and model set to NA}
 }
 \references{
  
@@ -59,7 +59,7 @@ Logistic regression parameter estimates (from fitted sightability model)
   Wong, C. 1996.  Population size estimation using the modified Horvitz-Thompson estimator with estimated sighting probabilities.  Dissertation, Colorado State University, Fort Collins, USA.
 }
 \author{
-John Fieberg
+Carl James Schwarz, cschwarz.stat.sfu.ca@gmail.com
 }
 
 

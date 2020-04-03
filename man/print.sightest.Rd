@@ -1,6 +1,7 @@
 \name{print.sightest}
 \alias{print.sightest}
-\title{Print method for sightability estimator
+\alias{print.sightest_ratio}
+\title{Print method for sightability estimators
 }
 \description{
 Prints fitted sightability model, sampling information, and sightability estimate (with confidence interval)
@@ -10,16 +11,16 @@ Prints fitted sightability model, sampling information, and sightability estimat
 }
 \arguments{
   \item{x}{
-   Sightability object, output from call to Sight.Est function. 
+   Sightability object, output from call to Sight.Est() or Sight.Est.Ratio() functions. 
 }
   \item{...}{arguments to be passed to or from other methods}
 }
 \author{
-John Fieberg
+John Fieberg and Carl James schwarz
 }
 
 \seealso{
- \code{\link{Sight.Est}}, \code{\link{summary.sightest}} 
+ \code{\link{Sight.Est}}, \code{\link{Sight.Est.Ratio}}, \code{\link{summary.sightest}}, \code{\link{summary.sightest_ratio}} 
 }
 \keyword{print}
  

@@ -1,12 +1,31 @@
 Package: SightabilityModel
 Type: Package
 Title: Wildlife Sightability Modeling
-Version: 1.3
-Date: 2014-10-03
+Version: 1.4
+Date: 2020-06-01
 Author: John Fieberg
 Maintainer: John Fieberg <jfieberg@umn.edu>
 Description: Uses logistic regression to model the probability of detection as a function of covariates. 
              This model is then used with observational survey data to estimate population size, while
              accounting for uncertain detection.  See Steinhorst and Samuel (1989).
+URL: https://github.com/jfieberg/jfieberg/SightabilityModel
+Imports: 
+    formula.tools,
+    Matrix,
+    msm,
+    plyr,
+    stats,
+    survey,
+    utils
 License: GPL-2
 LazyLoad: yes
+RoxygenNote: 7.1.0
+Suggests:
+    car,
+    ggplot2,
+    kableExtra,
+    knitr,
+    readxl,
+    reshape2,
+    rmarkdown
+VignetteBuilder: knitr
