@@ -1,5 +1,5 @@
 # SightabilityModel
-Contains code for the SightabilityModel Pacakge
+Contains code for the SightabilityModel Package
 
 ## Versions and installation
 
