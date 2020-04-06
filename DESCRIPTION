@@ -27,6 +27,9 @@ Suggests:
     knitr,
     readxl,
     reshape2,
-    rmarkdown
-VignetteBuilder: knitr
+    rmarkdown,
+    R.rsp
+VignetteBuilder: 
+    knitr,
+    R.rsp
 
