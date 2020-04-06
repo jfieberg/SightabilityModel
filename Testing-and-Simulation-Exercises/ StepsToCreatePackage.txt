@@ -1,0 +1,114 @@
+Things to do for next release
+- plots of capture probability should have p on the right axis.
+- plots of abundance should have abundance on the right axis
+- move the Trinity report to the GitHub site. Update all references to the
+report using SFU URL to the GitHub site.
+- plot on values of p, use shading for inner and outer fences (geom_ribbon)
+- add "95% credible interval" to plots of logit(p) and log(u).
+
+
+Steps to create package
+
+
+*** Note that ALL files must begin with a letter. So you should not
+number your vignettes as 01-,  02- etc.
+See https://github.com/r-lib/pkgdown/issues/545
+
+https://stat.ethz.ch/pipermail/r-package-devel/2015q2/000143.html
+
+
+*** Use devtools::spell_check() and fix spelling errors
+
+
+*** Rstudio build -> Documentation to run Roxygen and build files for manuals etc.
+
+Because my vignettes take too long for CRAN, I am using static HTML vignettes.
+See https://stackoverflow.com/questions/52340398/how-to-include-static-vignettes-in-r-package-using-r-rsp
+
+
+*** Include all of the *.Rmd files in the vignettes directory as usual.
+  Here is my YAML header
+title: "Bias caused by incomplete sampling"
+author: "Carl James Schwarz"
+date: "`r Sys.Date()`"
+output: 
+  html_vignette: 
+    toc: true # table of content true
+    toc_depth: 3  # upto three depths of headings (specified by #, ## and ###)
+    number_sections: true  ## if you want number sections at each table header
+#vignette: >
+#  %\VignetteIndexEntry{05 - Bias caused by incomplete sampling}
+#  %\VignetteEncoding{UTF-8}
+#  %\VignetteEngine{knitr::rmarkdown_notangle}
+
+The html_vignetter output type generates small html files.
+
+I don't know if you need to comment out the last four lines, but I did since I'm not
+generating the vignettes in the usual way
+
+
+*** Generate the html document.
+- you must create the html vignettes outside of the vignettes directory or use render() to do them in place
+  see https://stackoverflow.com/questions/23683994/knit-html-does-not-save-html-in-vignettes
+
+- I have a bit of R code that render all of the *.RMD in the vignettes directory
+
+
+*** Add the *.asis file
+- create a file in the vignettes directory of the form  my vignette.html.asis
+- notice that there are two suffixes to the file.
+
+- this file contains code similar to:
+%\VignetteIndexEntry{01 Diagonal model}
+%\VignetteEngine{R.rsp::asis}
+%\VignetteKeyword{vignette}
+%\VignetteKeyword{package}
+
+- note the Vignette engine
+
+- at this point you should have the myvignette.Rmd, myvignette.html, and myvignette.html.asis
+in the vignette directory.
+
+*** Modify the Description file to include
+Suggests: R.rspVignetteBuilder: R.rsp
+
+
+
+*** Generate the vignette index
+Use devtools::build_vignettes() # creates index
+
+This MOVES files from the vignette directory to the doc directory in the R package.
+You will need to COPY the *.html and *.asis back to the vignette directory
+because the next steps require them to also be in the vignettes directory
+
+
+*** Commit the changes to GitHub
+* Now you can download and install from GitHub and get
+  the vignettes etc in the package index
+
+  Notice that you need to download the html. Rmd, and asis files in the vignette for the
+  install below to work.
+ 
+  devtools::install_github("cschwarz-stat-sfu-ca/SPAS", dependencies = TRUE,
+                        build_vignettes = TRUE)
+
+
+*** build a local version of the package
+  R CMD build BTSPAS
+  R CMD check --as-cran BTSPAS*.gz
+
+Add any notes/warning to the cran-comments.md file and update GitHub
+
+
+*** Various checks on the package
+  devtools::check_rhub()
+  devtools::check_win_release()
+  devtools::check_win_devel()
+
+Add any notes/warnings to the cran-comments.md file and update GitHub
+
+
+*** Submit to CRAN
+- read http://r-pkgs.had.co.nz/release.html
+- use   devtools::release()
+

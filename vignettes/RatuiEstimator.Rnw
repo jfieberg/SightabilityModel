@@ -1,0 +1,16 @@
+\documentclass{article}
+\usepackage{pdfpages}
+%\VignetteIndexEntry{Implementing the Ratio Estimator in this package}
+
+\begin{document}
+
+\documentclass{article}
+
+% see https://www.r-bloggers.com/add-a-static-pdf-vignette-to-an-r-package/
+
+\begin{document}
+\includepdf[pages=-, fitpaper=true]{RatioEstimator.pdf}
+\end{document}
+
+
+\end{document}

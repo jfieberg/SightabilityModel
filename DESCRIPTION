@@ -29,3 +29,4 @@ Suggests:
     reshape2,
     rmarkdown
 VignetteBuilder: knitr
+
