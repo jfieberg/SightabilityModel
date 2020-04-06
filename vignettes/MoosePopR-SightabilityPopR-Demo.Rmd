@@ -1,8 +1,11 @@
 ---
-title: MoosePopR and SightabilityPopR Demonstration"
+title: MoosePopR and SightabilityPopR Demonstration
 author: "Carl james Schwarz"
 date: '`r format(Sys.time(), "%Y-%m-%d")`'
-output: rmarkdown::html_vignette
+output: 
+   rmarkdown::html_vignette:
+    toc: true
+    number_sections: yes
 vignette: >
   %\VignetteIndexEntry{MoosePopR and SightabilityPopR Demonstration}
   %\VignetteEngine{knitr::rmarkdown}
@@ -27,8 +30,8 @@ library(SightabilityModel)
 
 # Introduction
 
-This document illustrates how to use the *MoosePopR()* and *SightabilityPopR()* functions to r
-eplace the *MoosePop* and *AerialSurvey* programs.
+This document illustrates how to use the *MoosePopR()* and *SightabilityPopR()* functions to 
+replace the *MoosePop* and *AerialSurvey* programs.
 The results from a 2018 survey of moose will be used for illustrative purposes.
 
 ## Survey protocol
@@ -403,7 +406,7 @@ Each block must have a known area for the *MoosePopR()* function. Missing values
 
 ### A single block in a stratum
 If a stratum has only a single block surveyed, then no design based estimate of variance
-is possible. This is known as the *lonely primarly sampling unit (lonely PSU)*. Ad hoc
+is possible. This is known as the *lonely primarily sampling unit (lonely PSU)*. Ad hoc
 adjustments are possible; refer to
 http://r-survey.r-forge.r-project.org/survey/exmample-lonely.html
 for some suggestions.
@@ -418,7 +421,7 @@ a ratio with some strata having lonely PSU.
 
 The *SightabilityPopR()* function can
 deal with lonely PSUs by using within block variability (e.g. among groups) so this will provide a lower
-bound to the true uncertaintly.
+bound to the true uncertainty.
 
 The bottom line is avoid designs where you sample only a single block in a stratum!
 
@@ -847,7 +850,7 @@ wrong.way
 ```
 Notice the negative bias in the estimated abundance computed the incorrect way
 (`r round(wrong.way[wrong.way$Stratum==".OVERALL","estimate"])`) vs. the value
-when the *VegCoverClass* is set to the class with hight sightability 
+when the *VegCoverClass* is set to the class with highest sightability 
 (`r round(result$"All.Abund.C"[result$"All.Abund.C"$Stratum==".OVERALL","estimate"])`) computed above.
 
 #### Density of all moose
@@ -941,6 +944,238 @@ The result is a list object with one element each of the analyses done above.
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 names(result)
 ```
+
+# Domain estimation
+Domain estimation refer to estimating density, abundance, or ratios for subsets of the survey area.
+There are four cases to consider depending if information about the primary sampling units (PSU) (i.e. blocks)
+and stratum areas are known or unknown
+for the domain $\times$ the domain variable operates at the PSU (block) or group level.
+
+## Domain at PSU (block) level; domain population information known
+This is the simplest case. Here the primary sampling units (PSU) (or blocks) are classified as belonging
+to the domain or not. For example, the study area could be divided into two or more management unit
+and each PSU (block) belongs to one and only one management units in its entirety.
+The total area of the management unit and the total number of potential PSUs is known
+for each management unit.
+
+Because PSUs (blocks) were randomly selected within each stratum with equal probability, they are also
+randomly selected from each domain (management unit). 
+
+Consequently, just subset the survey data (observed animals) to those PSUs (blocks) belonging to the domain of interest and
+change the stratum information to refer to the total area and total PSUs (block) for that domain and 
+estimation for density, abundance, and ratios occurs exactly as before.
+
+### Example
+For example, the survey data used in the examples was classified in Domain $A$ and $B$,
+and a separate worksheet in the workbook has information about stratum information for Domain $A$. We 
+subset the survey data, read in the stratum information for Domain $A$ and then
+use the same methods as shown before.
+
+
+The PSUs (blocks) in the example are split between two domains (*A* and *B*) as shown below:
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# PSU's are split between the domains
+xtabs(~Domain+Block.ID, data=survey.data, exclude=NULL, na.action=na.pass)
+```
+The number of groups of moose in each block is shown. 
+
+We subset the survey data:
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# Subset the survey data
+survey.data.A <- survey.data[ survey.data$Domain == "A",]
+```
+
+The block information (block area) is unchanged and does not need to be subset.
+
+We need information at the stratum level for domain *A* which
+is available on the workbook:
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# Domain information for the population for each stratum
+stratum.data.A <- readxl::read_excel(
+      system.file("extdata", "SampleMooseSurveyData.xlsx", package = "SightabilityModel", mustWork=TRUE),
+      sheet="Stratum-DomainA",
+      skip=2,.name_repair="universal")
+
+kable(stratum.data.A, row.names=FALSE,
+      caption="Stratum totals for Domain A",
+      col.names=c("Stratum","Stratum Area","Stratum # blocks")) %>%
+      column_spec(column=c(1:3),         width="2cm") %>%
+      kable_styling("bordered",position = "center", full_width=FALSE)
+
+```
+
+We can now estimate abundance, density, or ratios for Domain A in the same way as before with and without
+corrections for sightability. We show only the estimated abundance for all moose after correcting
+for sightability. Note the use of **survey.data.A** and **stratum.data.A***
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+All.Abund.A.corrected <- SightabilityPopR(
+      survey.data       = survey.data.A         # raw data for domain A
+      ,survey.block.area = survey.block.area    # area of each block
+      ,stratum.data      = stratum.data.A       # stratum information for domain A
+      ,abundance=~NMoose                        # quantifies to estimate
+      ,sight.formula     = observed ~ VegCoverClass # sightability mode;
+      ,sight.beta        = beta                     # the beta coefficients for the sightability model
+      ,sight.beta.cov    = beta.cov                 # the covariance matrix for the beta coefficients
+      ,sight.var.method  = "Wong"                   # method  used to estimate the variances 
+)
+temp <- All.Abund.A.corrected
+temp[,-c(1:3,8)] <- round(temp[,-c(1:3,8)]+.00001,0)  # force to be numeric
+temp[,1:10]
+
+```
+
+
+
+## Domain at PSU (block) level; domain population information unknown.
+In some cases, only the surveyed PSUs can be classified by domain and the stratum total area and stratum total blocks
+is unknown for the domain. Cochran (1977, Sections 2.13 and 5A.14) discuss this case. 
+
+Abundance and ratios can be estimated by setting all survey data to 0 for blocks/groups not part of the domain,
+and then using the estimating functions on the complete data after zeroing. 
+This may seem strange, but consider the following table
+```                PSU
+Domain     A     A     A     A     B     B     B     B    B    B
+Y          2     3     3     4     5     3     2     3    2    4
+```
+
+The total of $Y$ in Domain $A$ is $2+3+3+4=12$. If we consider the modified data
+```                PSU
+Domain     A     A     A     A     B     B     B     B    B    B
+Y'         2     3     2     3     0     0     0     0    0    0
+```
+and find the mean of $\overline{Y'}=(2+3+3+4+0+0+0+0+0+0)/10=1.2$ and multiply the mean
+of *Y'* by the population number of PSU (10) we get the domain total of $Total(y)=\overline{Y'} \times 10=1.2 \times 10=12$.
+
+
+
+### Example
+We set the survey data to 0 if the domain is not *A* (notice that we do NOT delete observations).
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# Set number of moose to zer0 if not part of domain A
+survey.data.A.z <- survey.data
+survey.data.A.z$NMoose[ survey.data$Domain != "A"] <- 0
+```
+
+We now use the modified survey data (**survey.data.A.Z** but the original group and stratum data:
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+All.Abund.A.corrected.z <- SightabilityPopR(
+      survey.data        = survey.data.A.z    # raw data with non-domain counts set to zero
+      ,survey.block.area = survey.block.area  # area of each block
+      ,stratum.data      = stratum.data       # stratum information
+      ,abundance=~NMoose                      # quantifies to estimate
+      ,sight.formula     = observed ~ VegCoverClass # sightability mode;
+      ,sight.beta        = beta                     # the beta coefficients for the sightability model
+      ,sight.beta.cov    = beta.cov                 # the covariance matrix for the beta coefficients
+      ,sight.var.method  = "Wong"                   # method  used to estimate the variances 
+)
+temp <- All.Abund.A.corrected.z
+temp[,-c(1:3,8)] <- round(temp[,-c(1:3,8)]+.00001,0)  # force to be numeric
+temp[,1:10]
+
+```
+
+The estimates will be similar (but not exactly the same) between this analysis and the previous section.
+
+Estimates of ratios can be found in the same way because these are based on abundances
+
+**However, estimates of density cannot be found using this method**. 
+Refer to Cochran(1977, Section 5A.14 ,*Estimating Domain Means*) for more details.
+
+
+## Domain at group level; domain population information known
+The analysis in this case is similar to the comparable case
+when the domain occurs at the PSU (block) level. 
+Now **groups** are classified as belonging
+to the domain or not. For example, interest may lie in the number of moose in each
+vegetation class. 
+
+All blocks are used, but now in each block, you will subset the groups that belong to the domain.
+The hard part is the area  in this domain of EACH PSU (block) must also be known. Presumably, this is a GIS
+exercise in the case of vegetation cover, assuming that entire survey area has been mapped.
+
+Similarly, the total area in the stratum for this domain must be known. This is presumably a GIS exercise.
+
+The analysis proceeds by subsetting the survey data to groups that fall within this domain, but 
+**you need to ensure that groups without this domain are still included (with 0 counts for the response variable)**.
+You also need to use
+the modified block areas and modified stratum area in this domain. 
+Please contact me if you are attempting to do this as the programming *R* is tricky, to say the least.
+
+
+## Domain at group level; domain population information unknown.
+In some cases, only the surveyed groups can be classified by domain and the block area, 
+stratum total area and stratum total blocks
+is unknown for the domain. 
+
+We use the same trick as above by setting the survey data 
+to 0 if the domain is not *A* (notice that we do NOT delete observations).
+
+### Example
+Suppose we want moose abundance by vegetation cover class. The estimate of total abundance is
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+All.Abund <- SightabilityPopR(
+      survey.data        = survey.data        # raw data
+      ,survey.block.area = survey.block.area  # area of each block
+      ,stratum.data      = stratum.data       # stratum information
+      ,abundance=~NMoose                      # quantifies to estimate
+      ,sight.formula     = observed ~ VegCoverClass # sightability mode;
+      ,sight.beta        = beta                     # the beta coefficients for the sightability model
+      ,sight.beta.cov    = beta.cov                 # the covariance matrix for the beta coefficients
+      ,sight.var.method  = "Wong"                   # method  used to estimate the variances 
+)
+temp <- All.Abund
+temp[,-c(1:3,8)] <- round(temp[,-c(1:3,8)]+.00001,0)  # force to be numeric
+temp[,1:10]
+
+```
+
+We will compute the total abundance for each vegetation cover class
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+All.Abund.vc <- plyr::llply(unique(survey.data$VegCoverClass), function(VegCover){
+   # Set number of moose to zer0 if not part of domain A
+   survey.data.z <- survey.data
+   survey.data.z$NMoose[ survey.data$VegCoverClass != VegCover] <- 0
+   #browser()
+   All.Abund.vc <- SightabilityPopR(
+      survey.data        = survey.data.z      # raw data that has been zeroed out
+      ,survey.block.area = survey.block.area  # area of each block
+      ,stratum.data      = stratum.data       # stratum information
+      ,abundance=~NMoose                      # quantifies to estimate
+      ,sight.formula     = observed ~ VegCoverClass # sightability mode;
+      ,sight.beta        = beta                     # the beta coefficients for the sightability model
+      ,sight.beta.cov    = beta.cov                 # the covariance matrix for the beta coefficients
+      ,sight.var.method  = "Wong"                   # method  used to estimate the variances 
+   )
+   list(VegCoverClass=VegCover, est=All.Abund.vc)
+})
+
+# extract the total abundance
+
+All.Abund.vc.df <- plyr::ldply(All.Abund.vc, function(x){
+   #browser()
+   res <- data.frame(VegCoverClass=as.character(x$VegCoverClass), stringsAsFactors=FALSE)
+   res$estimate  <- x$est[x$est$Stratum==".OVERALL", c("estimate")]
+   res$SE        <- x$est[x$est$Stratum==".OVERALL", c("SE"      )]
+   res
+   
+})
+All.Abund.vc.df <- plyr::rbind.fill( All.Abund.vc.df,
+                                     data.frame(VegCoverClass=".OVERALL", estimate=sum(All.Abund.vc.df$estimate, stringAsFactors=FALSE)))
+All.Abund.vc.df
+
+```
+The estimates sum to the estimate firstly computed, but the estimates from the individual 
+vegetation cover classes are not independent and so the overall standard error cannot be found
+from the separate estimates by vegetation cover class.
+
+Estimates of ratios can be found in the same way because they are based on abundances.
+
+**However, estimates of density cannot be found using this method**. 
+Refer to Cochran(1977, Section 5A.14 ,*Estimating Domain Means*) for more details.
+
+
+
 
 
 
