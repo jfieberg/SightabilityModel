@@ -122,9 +122,8 @@ function(numerator, denominator, srates, nh, Nh, stratum, subunit, covars, beta,
   # Get various quantities read
   #  Calculate MKs and pks (MKs = corrected totals by subunit, pks = sampling rate for the subunit)
   #browser()
-  # notice the corrections from Wong (1996) in this term. 
   # We need to adjust the numerator and denominator variables for sightability
-  MKs <- rowsum(numerator*denominator*theta*theta, subunit)
+  MKs <- rowsum(numerator*denominator*theta, subunit)
   
   pks <- tapply(srates,subunit, unique)
   nk <- length(pks)

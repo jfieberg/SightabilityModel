@@ -21,35 +21,38 @@ This vignette documents the development of the ratio estimator in the *Sightabil
 The theory for this extension is found in Wong (1996). A portion of her thesis is appended to this document
 
 # Implementation
-Equation 2.4.2 is the ratio estimator formed as the ratio of estimates of the total for variables $a$ and $b$ (e.g. bulls:cow ratio) tat
+Equation 2.4.2 is the ratio estimator formed as the ratio of estimates of the total for variables 
+$a$ and $b$ (e.g. bulls:cow ratio) that
 are adjusted using the inverse of sightability ($\Theta_{ij}$) for group $j$ in primary sampling unit $i$.
 
-The delta-method is used to find the variance of the ratio as a function of the variances of the estimates of the numerator and
-denominator and the covariance between the two estimates (Equation 2.4.4). The variance of the numerator and denominator can be obtained
-using the *Sight.Est()* function in the *SightabilityModel* package.l So that all remains is to estimate the
+The delta-method is used to find the variance of the ratio as a function of the variances of the 
+estimates of the numerator and
+denominator and the covariance between the two estimates (Equation 2.4.4). 
+The variance of the numerator and denominator can be obtained
+using the *Sight.Est()* function in the *SightabilityModel* package. 
+So that all remains is to estimate the
 covariance between the estimate of the numerator and denominator ($Cov(\widehat{\tau}_a, \widehat{\tau_b}))$).
 
 The first Equation 2.4.5 gives the formula for the covariance of the numerator and 
-denominator which is estimated as noted just below Equation 2.4.5
-as
+denominator.
+In order to estimate the covariance, we need estimators for each term, i.e.
+$$\widehat{Cov}(\widehat{\tau}_a, \widehat{\tau_b})= estimator \left( E[\widehat{\tau}_a \widehat{\tau}{_b}] \right) - estimator \left( \tau_a \tau_b \right)$$
+
+The $estimator \left( E[\widehat{\tau}_a \widehat{\tau}{_b}] \right)$ is simply  $\widehat{\tau}_a \widehat{\tau}{_b}$.
+
+This then gives:
 $$\widehat{Cov}(\widehat{\tau}_a, \widehat{\tau_b})= \widehat{\tau}_a \widehat{\tau}_b - \widehat{\tau_a \tau_b}$$
-NOTICE THE MINUS SIGN between the two terms.
+where $\widehat{\tau_a \tau_b}$ is the estimator of $\tau_a \tau_b$. NOTICE THE MINUS SIGN between the two terms.
 
 The population value for the second term above ($\tau_a \tau_b$) is given by the equation between the two Equations 2.4.5
 which consists of three terms.
 
-This is combined in the second Equation 2.4.5 and Equation 2.4.6. However both equations have two errors. 
-
-First, the minus sign above has been dropped, so the proper form of the two estimating equations is:
+This is combined in the second Equation 2.4.5 and Equation 2.4.6. Note that the equation has an error. 
+where the minus sign above has been dropped, so the proper form of the two estimating equations is:
 $$\widehat{Cov}(\widehat{\tau}_a, \widehat{\tau_b}) =  \widehat{\tau}_a \widehat{\tau}_b - \left[term2 + term3 + term4 \right]  $$
 rather than simply adding the 4 terms together.
 
-Second, the estimator of $\sum_i^N \sum_j^{M_i}a_{ij} b_{ij}$ (term2 above) is
-$$\widehat{term2} =\sum_i^N \frac{I_i}{\pi_i} \sum_j^{M_i}Z_{ij} a_{ij} b_{ij} \Theta_{ij}^2 $$
-i.e. BOTH $a_{ij}$ and $b_{ij}$ must be expanded by the estimate of the inverse of the sightability factor $\widehat{\Theta}_{ij}$ 
-leading to the square of $\widehat{\Theta}$. This is similar to what happens in the rest of the terms.
-
-These corrections were validated using simulation.
+This corrections was validated using simulation.
 
 # References
 Fieberg, J. (2012). Estimating Population Abundance Using Sightability Models: R SightabilityModel Package. Journal of Statistical Software, 51(9), 1-20. URL http://www.jstatsoft.org/v51/i09/.

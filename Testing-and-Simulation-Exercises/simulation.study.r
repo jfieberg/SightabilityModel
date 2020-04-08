@@ -18,14 +18,10 @@ if(doParallel) {
 
 library(SightabilityModel)
 
-source("SightabilityModel/R/Sight.Est.Ratio.R")
-source("SightabilityModel/R/Wong.Est.Ratio.R")
-
-
 library(ggplot2)
 library(plyr)
 
-set.seed(12343343)
+set.seed(43534534)
 # First a single stratum of with 50 blocks, sampling 10 blocks, sightability of .5 (binomial)
 
 N.blocks <- 50
@@ -37,17 +33,16 @@ population <- plyr::ldply(1:N.blocks, function(block){
   # number of bulls is uniform between 5 and 10
   n.bulls  <- trunc(runif(n.groups, min=5, max=10))
   n.cows   <- rgeom(n.bulls, .2)
-  # sightability of 0.5 using binomial
-  n.bulls.obs <- rbinom(n.groups, n.bulls, prob.sight)
-  n.cows.obs  <- rbinom(n.groups, n.cows , prob.sight)
-  
+  # sightability of EACH group is 0.5 using binomial
+  group.obs <- rbinom(n.groups,1,prob.sight)
+
   # total animals observed
   n.total  <- n.bulls + n.cows
-  n.total.obs <- n.bulls.obs + n.cows.obs
   stratum =1 
   data.frame(stratum=stratum, block=block, group=1:n.groups,
-             n.bulls, n.cows, n.bulls.obs, n.cows.obs,
-             n.total, n.total.obs)
+             group.obs =group.obs,
+             n.bulls, n.cows, 
+             n.total)
 })
 
 # actual values
@@ -73,25 +68,29 @@ sim.res <- plyr::llply(1:n.sim, function(sim,population, n.sightability, n.sampl
                             Nh=length(unique(block)))
    # sightability trials. Random sample of groups
    sight.trials <- population[sample(1:nrow(population), n.sightability, replace=TRUE),]
-   fit <- glm( cbind(sight.trials$n.total.obs, sight.trials$n.total-n.total.obs) ~ 1, data=sight.trials, family=binomial(link=logit))
+   fit <- glm( cbind(sight.trials$group.obs, 1-sight.trials$group.obs) ~ 1, data=sight.trials, family=binomial(link=logit))
    
    beta <- coef(fit)
    beta.cov <- vcov(fit)
    
    # random sample of blocks
    block.sample <- sample(1:length(unique(population$block)), n.sample.blocks)
-   obs.data <- population[ population$block %in% block.sample,]
-   obs.data$total       <- obs.data$n.total.obs
-   obs.data$numerator   <- obs.data$n.bulls.obs
-   obs.data$denominator <- obs.data$n.cows.obs
+   obs.data <- population[ population$block %in% block.sample & population$group.obs==1,]
+   obs.data$total       <- obs.data$n.total
+   obs.data$numerator   <- obs.data$n.bulls
+   obs.data$denominator <- obs.data$n.cows
    obs.data$subunit     <- obs.data$block
+   # add a dummy record with all zero counts to ensure that right number of blocks is counted.
+   obs.data <- plyr::rbind.fill(obs.data,
+                     data.frame(block=block.sample, n.total=0, n.bulls=0, n.cows=0, 
+                                stratum=1, subunit=block.sample, total=0, numerator=0, denominator=0, group.obs=1))
    
    # number of blocks
    sample.stratum.info <- plyr::ddply(obs.data, "stratum", plyr::summarize,
                                       nh=length(unique(block)))
    sample.stratum.info <- merge(sample.stratum.info, stratum.info)
    # make sure that totals are estimated properly
-   #   browser()
+   #  browser()
    total.est <- Sight.Est( observed ~1, odat=obs.data, 
                            sampinfo=sample.stratum.info,
                            bet=beta,

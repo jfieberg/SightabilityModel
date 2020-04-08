@@ -52,8 +52,13 @@ a survey with no missing blocks), but no biases are introduced.
 When a block is surveyed, moose are observed in groups. When a group is identified, a count of the number
 of moose is made separated by age (adult, juvenile, calves) and sex (bull or cow).
 
-Not all moose can be counted due to visibility concerns. A previous sightability study (**conducted when**) is used
-to correct the observed count of moose based on a categorical vegetation cover variable with five classes.
+Not all groups of moose can be observed due to sightability issues. 
+A previous sightability study (**conducted when**) is used
+to estimate the probability of detecting a group of moose based on a
+categorical vegetation cover variable with five classes.
+**NOTE that sightability operates at the group level and not at the moose level**. This
+means that if a group is sighted, then all members of the group are enumerated. But entire groups
+could be "invisible" due to vegetation cover.
 
 This is a stratified random sampling design where the sampling unit is the *block* surveyed in each stratum
 and the observational unit is a group of moose. The observations on groups are pseudo-replicates
@@ -190,8 +195,8 @@ stratum.data
 Ensure that the stratum labels match those used in the raw data
 
 ## Sightability model.
-A logistic regression comparing observed moose to known number of moose (e.g. how many radio collared moose
-are detected) was used to estimate the sightability model. 
+A logistic regression comparing observed groups of moose to known groups of moose (e.g. based on radio collared moose)
+was used to estimate the sightability model. 
 
 ### Extracting from *AerialSurvey*
 The sightability model used was extracted from the *AerialSurvey* program input files and entered on the
@@ -310,7 +315,7 @@ beta.cov
 ```
 These values match those in the *AerialSurvey* package.
 
-The estimated sightability and expansion factors (inverse of sightability) are:
+The estimated sightability and expansion factors at the group level (inverse of sightability) are:
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 Cover <- data.frame(intercept=1, VegCoverClass=1:5)
 Cover$logit.p <- as.matrix(Cover[,1:nbeta ]) %*% beta
@@ -325,7 +330,7 @@ temp[,2:7]<- round(temp[,2:7],3)
 #temp
 
 kable(temp, row.names=FALSE,
-      caption="Estimated sightability and expansion by Vegetation Cover Class",
+      caption="Estimated sightability of groups and expansion by Vegetation Cover Class",
       col.names=c("Vegetation Cover Class","logit(p)","SE logit(p)","p","SE(p)","Expansion Factor","SE(EF)")) %>%
       column_spec(column=c(1:7),         width="2cm") %>%
       kable_styling("bordered",position = "center", full_width=FALSE)
@@ -354,7 +359,7 @@ This has implications for estimation as noted later. Generally speaking,
 you should not simply delete these observations because this will introduce
 substantial bias in the estimates. Rather, impute a vegetation cover
 class that gives the highest sightability for these groups to give a lower bound
-on the number of moose in these groups. This will reduce (but not eliminate) the bias caused by simply dropping
+on the number of moose in this block. This will reduce (but not eliminate) the bias caused by simply dropping
 these observations.
 
 
@@ -392,7 +397,7 @@ No missing values are allowed in any count.
 The sightability models use covariates at the group level to adjust for detection less than 100%.
 No missing values are allowed for the covariates. If the covariates are not available, then you 
 should not simply delete the group, but rather impute a value of the covariate that gives the highest 
-sightability to form a lower bound on the number of animals in the group.
+sightability to form a lower bound on the number of groups in the block.
 
 See the example in the Sightability section below on dealing with missing covariates.
 
@@ -601,15 +606,15 @@ The above computations are not adjusted for sightability, i.e. not all moose
 can be detected due to visibility concerns. 
 
 An adjustment for sightability can be done by also performing a study where a known 
-number of moose (e.g. radio collared) are surveyed and information about detection/non detection
-is recorded. A logistic regression (see previous sections) is used to estimate the
-probability of detection given covariates (such as Vegetation Class). 
+number of groups of moose (e.g. radio collared) are surveyed and information about detection/non detection
+is recorded at the group level. A logistic regression (see previous sections) is used to estimate the
+probability of detection of a group given covariates (such as Vegetation Class). 
 
-Then the sightability model is used to expand the observed number of moose seen in a group by the
+Then the sightability model is used to expand the observed number of groups of moose by the
 inverse of the probability of detection. For example, if the probability of detection for
-a group is 0.4, then each moose in the group is expanded by $1/0.4=2.5x$ to account for
-sightability. It is assumed that all animals in a group (e.g. bulls, cows, calves) have the
-same sightability correction factor.
+a group is 0.4, then this group is expanded by $1/0.4=2.5x$ to account for
+sightability. **It is assumed that all animals in a group (e.g. bulls, cows, calves) are observed
+if a group is detected.**
 
 Let $\theta_{hjk}$ represent the expansion factor for group $k$ in block $j$ of stratum $h$.
 In the analyses that follow the block area is NOT used in the analysis. In its place, a simple
@@ -684,12 +689,12 @@ a material effect.
 Suppose a sample of $n_h$ blocks were surveyed in stratum $h$ out of $N_h$ total number of blocks. 
 For each block, the number of moose $m_{hjk}$
 are obtained for group $k$ in block $j$ in stratum $h$. The
-estimated correction factor (for visibility) is of animals in this group is 
+estimated correction factor (for visibility of the group) is 
 $\widehat{\theta}_{hjk}$.
 
 The estimated abundance of moose in stratum $h$ is obtained as:
 $$\widehat{M}_h = N_h \times \frac{\sum_{jk} m_{hjk}\widehat{\theta}_{hjk}}{n_h}$$
-i.e. as the mean number of moose per surveyed block times the total number of blocks. The
+i.e. as the mean number of (sightability corrected) moose per surveyed block times the total number of blocks. The
 standard error of this estimate is complicated because of the need to account for the estimated sightability
 but the theory is covered in Steinhurst and Samuel (1989), Fieberg (2012) and Wong (1996) and
 implemented in the *AerialSurvey* and *SightabiityModel* packages of *R*. The latter 
@@ -715,7 +720,7 @@ the uncertainty of the correction factors but is given in Wong (1996).
 
 Note that if the sightability is equal for all groups, then this common sightability correction
 factor would cancel everywhere and you would get the same results as the ratio estimator based
-on the observed counts. In most cases, the impact of sightability will be small on the ratio estimator
+on the observed groups only. In most cases, the impact of sightability will be small on the ratio estimator
 and its standard error.
 
 If the number of bulls per 100 cows is wanted, simply multiply the estimate and its standard error by 100x.
@@ -822,7 +827,8 @@ temp <- result$"All.Abund.C"
 temp[,-c(1:3,8)] <- round(temp[,-c(1:3,8)]+.00001,0)  # force to be numeric
 temp
 ```
-The *estimate* and *SE* column as the estimated (corrected for sightability) density of all moose with a measure of uncertainty for
+The *estimate* and *SE* column as the estimated (corrected for sightability) 
+density of all moose with a measure of uncertainty for
 each stratum. The overall abundance is found as the sum of the estimates in each stratum. The right most columns
 are information about the sources of uncertainty (due to sampling, sightability, or the model for sightability).
 
@@ -1189,7 +1195,7 @@ Lumley, T. (2019) "survey: analysis of complex survey samples". R package versio
 R Core Team (2019). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
   Vienna, Austria. URL https://www.R-project.org/.
 
-Steinhorst, K. R. and Samuel, M. D. (1989). Sightability Adjustment Methods for Aerial Surveys of Wildlife Populations. Biometrics 45:415–425.
+Steinhorst, K. R. and Samuel, M. D. (1989). Sightability Adjustment Methods for Aerial Surveys of Wildlife Populations. Biometrics 45:415--425.
 
 Wong, C. (1996). Population size estimation using the modified Horvitz-Thompson estimator with estimated sighting probabilities. Dissertation, Colorado State University, Fort Collins, USA.
 
