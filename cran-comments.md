@@ -8,7 +8,13 @@
 ## R CMD check results
 There were no ERRORs or WARNINGs. 
 
-There were no  NOTES:
+There were 1  NOTES about mainainter email address switching 
+New maintainer:
+  Schwarz Carl <cschwarz.stat.sfu.ca@gmail.com>
+Old maintainer(s):
+  John Fieberg <jfieberg@umn.edu>
+
+I added functionality to this package (with permission of Fieberg) and am updating package.
 
 ## Reverse dependencies
 None.

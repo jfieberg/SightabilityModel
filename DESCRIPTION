@@ -4,8 +4,8 @@ Title: Wildlife Sightability Modeling
 Version: 1.4
 Date: 2020-08-01
 Authors@R: c(
-    person("Fieberg", "John",       email = "jfieberg@umn.edu",               role = c("cre","aut")),
-    person("Schwarz", "Carl James", email = "cschwarz.stat.sfu.ca@gmail.com", role = c("aut"      )))
+    person("Fieberg", "John",       email = "jfieberg@umn.edu",               role = c("aut")),
+    person("Schwarz", "Carl James", email = "cschwarz.stat.sfu.ca@gmail.com", role = c("aut","cre")))
 Description: Uses logistic regression to model the probability of detection as a function of covariates. 
              This model is then used with observational survey data to estimate population size, while
              accounting for uncertain detection.  See Steinhorst and Samuel (1989).
@@ -23,6 +23,7 @@ LazyLoad: yes
 RoxygenNote: 7.1.1
 Suggests:
     car,
+    data.table,
     ggplot2,
     kableExtra,
     knitr,
