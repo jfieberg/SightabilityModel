@@ -1,7 +1,7 @@
 Package: SightabilityModel
 Type: Package
 Title: Wildlife Sightability Modeling
-Version: 1.4
+Version: 1.4.0
 Date: 2020-08-01
 Authors@R: c(
     person("Fieberg", "John",       email = "jfieberg@umn.edu",               role = c("aut")),
