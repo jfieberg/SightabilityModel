@@ -9,7 +9,7 @@ Authors@R: c(
 Description: Uses logistic regression to model the probability of detection as a function of covariates. 
              This model is then used with observational survey data to estimate population size, while
              accounting for uncertain detection.  See Steinhorst and Samuel (1989).
-URL: https://github.com/jfieberg/jfieberg/SightabilityModel
+URL: https://github.com/jfieberg/SightabilityModel
 Imports: 
     formula.tools,
     Matrix,
