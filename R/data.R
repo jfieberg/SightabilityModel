@@ -10,11 +10,12 @@
 #' @name exp.m
 #' @docType data
 #' @format A data frame with 124 observations on the following 4 variables.
-#' \describe{ \item{list("year")}{year of the experimental survey (test trial)}
-#' \item{list("observed")}{Boolean variable (=1 if moose was observed and 0
-#' otherwise)} \item{list("voc")}{measurement of visual obstruction}
-#' \item{list("grpsize")}{group size (number of observed moose in each
-#' independently sighted group)} }
+#' \describe{ 
+#'   \item{year}{year of the experimental survey (test trial)}
+#'   \item{observed}{Boolean variable (=1 if moose was observed and 0 otherwise)} 
+#'   \item{voc}{measurement of visual obstruction}
+#'   \item{grpsize}{group size (number of observed moose in each independently sighted group)}
+#'  }
 #' @references Giudice, J H. and Fieberg, J. and Lenarz, M. S.  2012. Spending
 #' Degrees of Freedom in a Poor Economy: A Case Study of Building a
 #' Sightability Model for Moose in Northeastern Minnesota.  Journal of Wildlife
@@ -63,13 +64,16 @@ NULL
 #' @name gdat
 #' @docType data
 #' @format A data frame with 113 observations on the following 9 variables.
-#' \describe{ \item{list("GroupSize")}{number of animals observed in each
-#' independently sighted group [cluster size]} \item{list("Terrain")}{measure
-#' of terrain obstruction} \item{list("pct.VegCover")}{measure of vegetative
-#' obstruction} \item{list("stratum")}{stratum identifier}
-#' \item{list("total")}{number of animals observed in each independently
-#' sighted group [same as GroupSize]} \item{list("subunit")}{a numeric vector,
-#' Plot ID} }
+#' \describe{ 
+#'   \item{GroupSize}{number of animals observed in each
+#'         independently sighted group [cluster size]} 
+#'   \item{Terrain}{measure
+#'         of terrain obstruction} \item{pct.VegCover}{measure of vegetative
+#'         obstruction} \item{stratum}{stratum identifier}
+#'   \item{total}{number of animals observed in each independently
+#'         sighted group [same as GroupSize]} 
+#'   \item{subunit}{a numeric vector, Plot ID} 
+#' }
 #' @references Jenkins, K. J., Happe, P.J., Beirne, K.F, Hoffman, R.A.,
 #' Griffin, P.C., Baccus, W. T., and J. Fieberg.  In press.  Recent population
 #' trends in mountain goats in the Olympic mountains.  Northwest Science.
@@ -96,14 +100,20 @@ NULL
 #' @name obs.m
 #' @docType data
 #' @format A data frame with 805 observations on the following 11 variables.
-#' \describe{ \item{list("year")}{year of survey}
-#' \item{list("stratum")}{stratum identifier} \item{list("subunit")}{sample
-#' plot ID} \item{list("total")}{number of moose observed}
-#' \item{list("cows")}{number of cows observed} \item{list("calves")}{number of
-#' calves observed} \item{list("bulls")}{number of bulls observed}
-#' \item{list("unclass")}{number of unclassified animals observed (could not
-#' identify sex/age class)} \item{list("voc")}{ measurement of visual
-#' obstruction} \item{list("grpsize")}{group size (cluter size)} }
+#' \describe{ 
+#'   \item{year}{year of survey}
+#'   \item{stratum}{stratum identifier} \item{subunit}{sample
+#'        plot ID} 
+#'   \item{total}{number of moose observed}
+#'   \item{cows}{number of cows observed} \item{calves}{number of
+#'        calves observed} 
+#'   \item{bulls}{number of bulls observed}
+#'   \item{unclass}{number of unclassified animals observed (could not
+#'         identify sex/age class)} 
+#'   \item{voc}{ measurement of visual
+#'        obstruction} 
+#'   \item{grpsize}{group size (cluter size)} 
+#' }
 #' @references Giudice, J H. and Fieberg, J. and Lenarz, M. S.  2012. Spending
 #' Degrees of Freedom in a Poor Economy: A Case Study of Building a
 #' Sightability Model for Moose in Northeastern Minnesota.  Journal of Wildlife
@@ -130,10 +140,14 @@ NULL
 #' @name sampinfo.m
 #' @docType data
 #' @format A data frame with 12 observations on the following 5 variables.
-#' \describe{ \item{list("year")}{year of survey}
-#' \item{list("stratum")}{stratum identifier} \item{list("Nh")}{number of
-#' population units in stratum h} \item{list("nh")}{number of sample units in
-#' stratum h} }
+#' \describe{ 
+#'   \item{year}{year of survey}
+#'   \item{stratum}{stratum identifier} 
+#'   \item{Nh}{number of
+#'        population units in stratum h} 
+#'   \item{nh}{number of sample units in
+#'        stratum h} 
+#' }
 #' @references Giudice, J H. and Fieberg, J. and Lenarz, M. S.  2012. Spending
 #' Degrees of Freedom in a Poor Economy: A Case Study of Building a
 #' Sightability Model for Moose in Northeastern Minnesota.  Journal of Wildlife
