@@ -22,6 +22,6 @@ estimate (with confidence interval)
 \code{\link{summary.sightest}}, \code{\link{summary.sightest_ratio}}
 }
 \author{
-John Fieberg and Carl James schwarz
+John Fieberg and Carl James Schwarz
 }
 \keyword{print}

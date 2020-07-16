@@ -2,7 +2,7 @@
 % Please edit documentation in R/SightabilityPopR.R
 \name{SightabilityPopR}
 \alias{SightabilityPopR}
-\title{R function that interfaces with the SightabilityModel package and gives similar functionalty
+\title{R function that interfaces with the SightabilityModel package and gives similar functionality
 as the AerialSurvey program}
 \usage{
 SightabilityPopR(
@@ -34,19 +34,19 @@ the stratum (see stratum.var) and block (see block.id.var)}
 area of the block (see block.area.var). The data frame can contain information for other blocks that
 were not surveyed (e.g. for the entire population of blocks) and additional block information will be ignored.}
 
-\item{stratum.data}{A data fraem containing for each stratum, the stratum id (see stratum.var), the total
+\item{stratum.data}{A data frame containing for each stratum, the stratum id (see stratum.var), the total
 number of blocks in the stratum (see stratum.blocks.var) and the total area of the stratum (see stratum.area.var)}
 
-\item{density, abundance, numerator, denominator}{Right-handed formula indentifying the variable(s) in the
+\item{density, abundance, numerator, denominator}{Right-handed formula identifying the variable(s) in the
 survey.data data frame for which the density, abundance, or ratio (numerator/denominator) are to be estimated.}
 
-\item{sight.formula}{A formula that idenfies the model used
-to estimate sightablity. For example \code{observed ~ VegCoverClass} would indicate
+\item{sight.formula}{A formula that identifies the model used
+to estimate sightability. For example \code{observed ~ VegCoverClass} would indicate
 that sightability is a function of the \code{VegCoverClass} variable in the survey 
 data. The left hand variable is arbitrary. The right hand variables must be present
 in the survey.data data frame.}
 
-\item{sight.beta}{The vector of estimated cofficients for the logistic regression sightability model.}
+\item{sight.beta}{The vector of estimated coefficients for the logistic regression sightability model.}
 
 \item{sight.beta.cov}{The covariance matrix of \code{sight.beta}}
 
@@ -79,11 +79,11 @@ A data frame containing for each stratum and for all strata (identified as strat
 }
 \description{
 A stratified random sample of blocks in a survey area is conducted.
- In each block, groups of moose are observed (usually throught an aerial survey).
+ In each block, groups of moose are observed (usually through an aerial survey).
  For each group of moose, the number of moose is recorded along with attributes
  such as sex or age.
  
- The SightabilityModelR() function  adjusts for sightability < 100%
+ The SightabilityPopR() function  adjusts for sightability < 100%
 }
 \examples{
  

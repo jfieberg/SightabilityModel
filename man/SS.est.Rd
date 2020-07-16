@@ -58,7 +58,7 @@ detection probabilities using test trial data}
 }
 \description{
 Estimates population size, with variance estimated using Steinhorst and
-Samuel (1989) and Samuel et al.'s (1992) estimator.  Usuaully, this function
+Samuel (1989) and Samuel et al.'s (1992) estimator.  Usually, this function
 will be called by Sight.Est
 }
 \references{

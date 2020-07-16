@@ -11,18 +11,18 @@
 #' 
 #' Estimates of the variance may be biased low when the number of test trials
 #' used to estimate model parameters is small (see Wong 1996, Fieberg and
-#' Guidice 2008).  A bootstrap can be used to aid the estimation process by
+#' Giudice 2008).  A bootstrap can be used to aid the estimation process by
 #' specifying Vm.boot = TRUE [note: this method is experimental, and can be
 #' time intensive].
 #' 
 #' Confidence interval construction: often the sampling distribution of tau^ is
 #' skewed right.  If logCI = TRUE, the confidence interval for tau^ will be
-#' constructed under an assumption that (tau^ - T) is lognormally distributed,
+#' constructed under an assumption that (tau^ - T) has a lognormal distribution,
 #' where T is the total number of animals seen.  In this case, the upper and
 #' lower limits are constructed as follows [see Wong(1996, p. 64-67)]:
 #' 
 #' LCL = T + [(tau^-T)/C]*sqrt(1+cv^2), UCL = T+[(tau^-T)*C]*sqrt(1+cv^2),
-#' where cv^2 = var(tau^)/(tau^-T)^2 and C = exp[z[alpha/2]*sqrtln(1+cv^2)].
+#' where cv^2 = var(tau^)/(tau^-T)^2 and C = exp[z[alpha/2]*sqrt(ln(1+cv^2))].
 #' 
 #' @param form a symbolic description of the sightability model to be fit
 #' (e.g., "y ~ x1 + x2 + ..."), where y is a binary response variable (= 1 if
@@ -35,7 +35,7 @@
 #' @param odat 'observational survey' data frame containing the following
 #' variable names (\emph{stratum, subunit, numerator, denominator}) along with
 #' the same covariates used to model detection probabilities (each record
-#' corresponds to an independently sighted group of animnals).  \emph{stratum}
+#' corresponds to an independently sighted group of animals).  \emph{stratum}
 #' = stratum identifier (will take on a single value for non-stratified
 #' surveys); \emph{subunit} = numeric plot unit identifier; \emph{numerator} =
 #' total number of observed animals (for each independently sighted group of
@@ -53,8 +53,8 @@
 #' @param method method for estimating variance of the abundance estimator.
 #' Should be one of ("Wong", "SS").  See details for more information.
 #' @param logCI Boolean variable, default (= TRUE), indicates the confidence
-#' interval should be constructed under the assumption that (tau^ - T) is
-#' lognormally distributed, where T is the total number of animals observed
+#' interval should be constructed under the assumption that (tau^ - T) has a
+#' lognormal distribution, where T is the total number of animals observed
 #' (see details)
 #' @param alpha type I error rate for confidence interval construction
 #' @param Vm.boot Boolean variable, when = TRUE indicates a bootstrap should be
@@ -137,7 +137,7 @@ function(form, sdat=NULL, odat, sampinfo, method="Wong", logCI=TRUE, alpha=0.05,
   # odat = dataset containing observed groups, sample unit ids, stratum identifiers, and sampling rates
   # sampinfo = data frame with sampling information (number of sample (nh) and population units (Nh) in each stratum
   # Method = method of variance estimation 
-  # logCI = should the confidence interval be constructed under the assumption that tau^ is lognormally distributed
+  # logCI = should the confidence interval be constructed under the assumption that tau^ has a  lognorma distribution
   # alpha = type I error rate for confidence interval construction
   # Vm.boot = should a bootstrap be used to estimate cov(theta[i,j],theta[i',j']), var/cov matrix of the expansion factors for detection
   # nboot = number of bootstraps if Vm.boot = TRUE

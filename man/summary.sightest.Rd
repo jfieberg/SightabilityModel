@@ -17,7 +17,7 @@
 \item{lcl}{Lower confidence limit} \item{ucl}{Upper confidence limit}
 }
 \description{
-Calculates confidence interval (based on asympototic [normal or log-normal
+Calculates confidence interval (based on asymptotic [normal or log-normal
 assumption])
 }
 \seealso{

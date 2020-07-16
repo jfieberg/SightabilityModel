@@ -5,8 +5,9 @@
 MN moose survey data
 }
 \description{
-Operational survey data for moose in MN (during years 2004-2007).  Each record corresponds to an indpendently sighted group of moose, with variables that capture
-  individual covariates (used in the detection model) as well as plot-level information (stratum identifer, sampling probability, etc). 
+Operational survey data for moose in MN (during years 2004-2007).  Each record corresponds to an 
+independently sighted group of moose, with variables that capture
+individual covariates (used in the detection model) as well as plot-level information (stratum identifier, sampling probability, etc). 
 }
 \usage{data(obs.m)}
 \format{
@@ -21,7 +22,7 @@ Operational survey data for moose in MN (during years 2004-2007).  Each record c
     \item{\code{bulls}}{number of bulls observed}
     \item{\code{unclass}}{number of unclassified animals observed (could not identify sex/age class)}
     \item{\code{voc}}{ measurement of visual obstruction}
-    \item{\code{grpsize}}{group size (cluter size)}
+    \item{\code{grpsize}}{group size (cluster size)}
   }
 }
 \references{

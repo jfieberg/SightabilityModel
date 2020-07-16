@@ -8,7 +8,7 @@
 #' @param x Sightability object, output from call to Sight.Est() or
 #' Sight.Est.Ratio() functions.
 #' @param ... arguments to be passed to or from other methods
-#' @author John Fieberg and Carl James schwarz
+#' @author John Fieberg and Carl James Schwarz
 #' @seealso \code{\link{Sight.Est}}, \code{\link{Sight.Est.Ratio}},
 #' \code{\link{summary.sightest}}, \code{\link{summary.sightest_ratio}}
 #' @keywords print

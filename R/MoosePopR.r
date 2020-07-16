@@ -1,11 +1,11 @@
 #' R function that gives the same functionality as the MoosePop program.
 #' 
 #'  A stratified random sample of blocks in a survey area is conducted.
-#'  In each block, groups of moose are observed (usually throught an aerial survey).
+#'  In each block, groups of moose are observed (usually through an aerial survey).
 #'  For each group of moose, the number of moose is recorded along with attributes
 #'  such as sex or age.
 #'  MoosePopR() assumes that sightability is 100%.
-#'  Use the SightabilityModelR() function to adjust for sightability < 100%
+#'  Use the SightabilityPopR() function to adjust for sightability < 100%
 #'
 #' @template survey.data.input
 #' @param conf.level Confidence level used to create confidence intervals.
@@ -14,7 +14,7 @@
 #'    or abundance or ratio estimate along with its estimated standard error and large-sample normal-based confidence
 #' @template author 
 #' @template references
-#' @keywords ~MoosePop ~moose surveys
+#' @keywords ~MOOSEPOP ~moose surveys
 #' @import formula.tools
 #' @import survey
 #' @importFrom Matrix bdiag 

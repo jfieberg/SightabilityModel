@@ -1,12 +1,12 @@
-#' R function that interfaces with the SightabilityModel package and gives similar functionalty
+#' R function that interfaces with the SightabilityModel package and gives similar functionality
 #' as the AerialSurvey program
 #' 
 #'  A stratified random sample of blocks in a survey area is conducted.
-#'  In each block, groups of moose are observed (usually throught an aerial survey).
+#'  In each block, groups of moose are observed (usually through an aerial survey).
 #'  For each group of moose, the number of moose is recorded along with attributes
 #'  such as sex or age.
 #'  
-#'  The SightabilityModelR() function  adjusts for sightability < 100%
+#'  The SightabilityPopR() function  adjusts for sightability < 100%
 #'
 #' @template survey.data.input
 #' @template sightability.input

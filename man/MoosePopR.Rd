@@ -29,10 +29,10 @@ the stratum (see stratum.var) and block (see block.id.var)}
 area of the block (see block.area.var). The data frame can contain information for other blocks that
 were not surveyed (e.g. for the entire population of blocks) and additional block information will be ignored.}
 
-\item{stratum.data}{A data fraem containing for each stratum, the stratum id (see stratum.var), the total
+\item{stratum.data}{A data frame containing for each stratum, the stratum id (see stratum.var), the total
 number of blocks in the stratum (see stratum.blocks.var) and the total area of the stratum (see stratum.area.var)}
 
-\item{density, abundance, numerator, denominator}{Right-handed formula indentifying the variable(s) in the
+\item{density, abundance, numerator, denominator}{Right-handed formula identifying the variable(s) in the
 survey.data data frame for which the density, abundance, or ratio (numerator/denominator) are to be estimated.}
 
 \item{block.id.var}{Name of the variable in the survey.data data frame and survey.block.area data frame 
@@ -59,11 +59,11 @@ A data frame containing for each stratum and for all strata (identified as strat
 }
 \description{
 A stratified random sample of blocks in a survey area is conducted.
- In each block, groups of moose are observed (usually throught an aerial survey).
+ In each block, groups of moose are observed (usually through an aerial survey).
  For each group of moose, the number of moose is recorded along with attributes
  such as sex or age.
  MoosePopR() assumes that sightability is 100%.
- Use the SightabilityModelR() function to adjust for sightability < 100%
+ Use the SightabilityPopR() function to adjust for sightability < 100%
 }
 \examples{
  
@@ -77,5 +77,5 @@ To Be Added.
 Schwarz, C. J. \email{cschwarz.stat.sfu.ca@gmail.com}.
 }
 \keyword{surveys}
-\keyword{~MoosePop}
+\keyword{~MOOSEPOP}
 \keyword{~moose}

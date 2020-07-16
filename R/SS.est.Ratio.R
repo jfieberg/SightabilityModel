@@ -3,7 +3,7 @@
 #' stub and has not been implemented.
 #' 
 #' Estimates ratio, with variance estimated using Steinhorst and Samuel (1989)
-#' and Samuel et al.'s (1992) estimator.  Usuaully, this function will be
+#' and Samuel et al.'s (1992) estimator.  Usually, this function will be
 #' called by Sight.Est.Ratio()
 #' 
 #' 

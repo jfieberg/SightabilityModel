@@ -54,17 +54,17 @@ due to the estimated detection parameters).}
 \value{
 \item{ratio.hat}{Sightability estimate of ratio, ratio^}
 \item{Vartot}{Estimated variance of ratio^} \item{VarSamp, VarSight,
-VarMod}{Estimated variance component due to sampling, sightabiity, model are
+VarMod}{Estimated variance component due to sampling, sightability, model are
 set to NA}
 }
 \description{
 Estimates population ratio, with variance estimated using Wong's (1996)
-estimator.  This function will usualled be called by Sight.Est,Ratio()
+estimator.  This function will usually be called by Sight.Est,Ratio()
 function (but see details).
 }
 \details{
 This function is called by Sight.Est.Ratio, but may also be called directly
-by the user (e.g., in cases where the original sighability [test trial] data
+by the user (e.g., in cases where the original sightability [test trial] data
 are not available, but the parameters and var/cov matrix from the logistic
 regression model is available in the literature).
 }

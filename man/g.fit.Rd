@@ -2,7 +2,7 @@
 \alias{g.fit}
 \docType{data}
 \title{
-Mountain Goat Sightabilty Model Information
+Mountain Goat Sightability Model Information
 }
 \description{
 Model averaged regression parameters and unconditional variance-covariance matrix for mountain goat sightability model (Rice et al. 2009)

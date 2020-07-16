@@ -16,7 +16,7 @@ vardiff(sight1, sight2)
 }
 \value{
 \item{vardiff}{numeric =
-var(tau^[1])+var(tau^[2])-2*Cov(tau^[1],tau^[2])}
+var(tau^[1])+var(tau^[2])-2*cov(tau^[1],tau^[2])}
 }
 \description{
 Function to estimate the variance of the difference between two population
@@ -25,7 +25,7 @@ detection).
 }
 \details{
 Population estimates constructed using the same sightability model will NOT
-be independent (they will typically exhibt positive covariance).  This
+be independent (they will typically exhibit positive covariance).  This
 function estimates the covariance due to using the same sightability model
 and subtracts it from the summed variance.
 }

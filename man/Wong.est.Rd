@@ -58,12 +58,12 @@ detection probabilities using test trial data}
 }
 \description{
 Estimates population size, with variance estimated using Wong's (1996)
-estimator.  This function will usualled be called by Sight.Est function (but
+estimator.  This function will usually be called by Sight.Est function (but
 see details).
 }
 \details{
 This function is called by Sight.Est, but may also be called directly by the
-user (e.g., in cases where the original sighability [test trial] data are
+user (e.g., in cases where the original sightability [test trial] data are
 not available, but the parameters and var/cov matrix from the logistic
 regression model is available in the literature).
 }

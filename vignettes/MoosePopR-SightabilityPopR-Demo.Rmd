@@ -36,7 +36,7 @@ The results from a 2018 survey of moose conducted according to methods
 described in RISC (2002) will be used for illustrative purposes.
 
 ## Survey protocol
-The survey area is divided in blocks (which are the primarly sampling units, PSUs). 
+The survey area is divided in blocks (which are the primary sampling units, PSUs). 
 Blocks could be defined using a grid-system, or based on ecological factors such as elevation, type of vegetation, etc.
 The blocks do not have the same area, nor do they have to rectangular.
 If blocks are of different size and the area of the block is not used in the analysis, 
@@ -442,7 +442,7 @@ The bias could be positive or negative depending if the deleted groups are large
 - If the number of blocks does not change (i.e. deleting this group does make the block empty), 
 then deleting the group makes the total count for this block too small. 
 If you keep the block with sightability set to 1, you partially correct against 
-dropping the block, becase rather than having a block correction factor of 2 
+dropping the block, because rather than having a block correction factor of 2 
 (e.g. some lack of sightability due to high vegetation cover), you are using 
 a sightability correction factor of 1.
 
@@ -779,9 +779,9 @@ The estimated abundance of moose in stratum $h$ is obtained as:
 $$\widehat{M}_h = N_h \times \frac{\sum_{jk} m_{hjk}\widehat{\theta}_{hjk}}{n_h}$$
 i.e. as the mean number of (sightability corrected) moose per surveyed block times the total number of blocks. The
 standard error of this estimate is complicated because of the need to account for the estimated sightability
-but the theory is covered in Steinhurst and Samuel (1989), Fieberg (2012) and Wong (1996) and
-implemented in the *AerialSurvey* (Unsworth, 1999) and *SightabiityModel* packages of *R*. The latter 
-package corrects the variance computations used by Steinhurst and Samuel (1989) and Fieberg (2012).
+but the theory is covered in Steinhorst and Samuel (1989), Fieberg (2012) and Wong (1996) and
+implemented in the *AerialSurvey* (Unsworth, 1999) and *SightabilityModel* packages of *R*. The latter 
+package corrects the variance computations used by Steinhorst and Samuel (1989) and Fieberg (2012).
 
 Similar computations are used for estimating the abundance of other sex/age categories.
 
@@ -847,7 +847,7 @@ Similar computations can be used for other ratios such as calves:cows.
 
 ### The *SightabilityPopR()* function
 I have created a function with the same calling arguments as the *MoosePopR()* function to
-estimate abundance, density, and ratios using the *SightabiityModel* package. 
+estimate abundance, density, and ratios using the *SightabilityModel* package. 
 Notice that additional functionality was added to the *SightabilityModel* package (Fieberg, 2012) to estimate ratios.
 
 
@@ -870,9 +870,9 @@ must also be specified using the arguments:
 - *sight.beta.cov* - the covariance matrix for the beta coefficients
 - *sight.logCI* - should confidence intervals for abundance be computed using a logarithmic transformation
 - *sight.var.method* - what method (either *"Wong"* or *"SS"*) should be used to estimate the variances .
-using the methods of Wong (1996) or Steinhurst
+using the methods of Wong (1996) or Steinhorst
 and Samuels (2012). The default (and preferred) method is *"Wong"* because she corrects 
-the variance computations used by Steinhurst and Samuel (1989) and Fieberg (2012).
+the variance computations used by Steinhorst and Samuel (1989) and Fieberg (2012).
 
 These additional parameters are passed to the appropriate functions in the *SightabilityModel* package (Fieberg, 2012). 
 Refer to
@@ -880,7 +880,7 @@ the examples for details.
  
 ### Sample Analyses
 #### Dealing with missing values in the sightability covariates
-Because we are correcting for sightability, we need the *VegClassCover* for all groups. However
+Because we are correcting for sightability, we need the *VegCoverClass* for all groups. However
 there are some groups of moose with missing data for this covariate:
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 select <- is.na(survey.data$VegCoverClass)
