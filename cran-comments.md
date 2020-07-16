@@ -8,7 +8,7 @@
 ## R CMD check results
 There were no ERRORs or WARNINGs. 
 
-There were 1  NOTES about mainainter email address switching 
+There were 1  NOTES about maintainer email address switching 
 New maintainer:
   Schwarz Carl <cschwarz.stat.sfu.ca@gmail.com>
 Old maintainer(s):
