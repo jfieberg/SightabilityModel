@@ -27,7 +27,9 @@ the stratum (see stratum.var) and block (see block.id.var)}
 
 \item{survey.block.area}{A data frame containing for each block, the block id (see block.id.var), the
 area of the block (see block.area.var). The data frame can contain information for other blocks that
-were not surveyed (e.g. for the entire population of blocks) and additional block information will be ignored.}
+were not surveyed (e.g. for the entire population of blocks) and information from these
+additional blocks will be ignored.
+\strong{This data frame should NOT contain the stratum variable.}}
 
 \item{stratum.data}{A data frame containing for each stratum, the stratum id (see stratum.var), the total
 number of blocks in the stratum (see stratum.blocks.var) and the total area of the stratum (see stratum.area.var)}
@@ -62,8 +64,8 @@ A stratified random sample of blocks in a survey area is conducted.
  In each block, groups of moose are observed (usually through an aerial survey).
  For each group of moose, the number of moose is recorded along with attributes
  such as sex or age.
- MoosePopR() assumes that sightability is 100%.
- Use the SightabilityPopR() function to adjust for sightability < 100%
+ MoosePopR() assumes that sightability is 100\%.
+ Use the SightabilityPopR() function to adjust for sightability < 100\%.
 }
 \examples{
  

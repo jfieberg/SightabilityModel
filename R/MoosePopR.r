@@ -4,8 +4,8 @@
 #'  In each block, groups of moose are observed (usually through an aerial survey).
 #'  For each group of moose, the number of moose is recorded along with attributes
 #'  such as sex or age.
-#'  MoosePopR() assumes that sightability is 100%.
-#'  Use the SightabilityPopR() function to adjust for sightability < 100%
+#'  MoosePopR() assumes that sightability is 100\%.
+#'  Use the SightabilityPopR() function to adjust for sightability < 100\%.
 #'
 #' @template survey.data.input
 #' @param conf.level Confidence level used to create confidence intervals.

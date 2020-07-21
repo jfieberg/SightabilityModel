@@ -15,7 +15,15 @@
 %   }
 %}
 
-\section{CHANGES IN VERSION 1.4}{
+\section{CHANGES IN VERSION 1.4.1}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Updated documentation to emphasize that block.area dataframe should NOT have a stratum variable.
+     }
+   }
+}
+
+\section{CHANGES IN VERSION 1.4.0}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
       \item Added function to estimate ratio of variables

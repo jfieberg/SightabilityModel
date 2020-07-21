@@ -6,7 +6,7 @@
 #'  For each group of moose, the number of moose is recorded along with attributes
 #'  such as sex or age.
 #'  
-#'  The SightabilityPopR() function  adjusts for sightability < 100%
+#'  The SightabilityPopR() function  adjusts for sightability < 100\%.
 #'
 #' @template survey.data.input
 #' @template sightability.input

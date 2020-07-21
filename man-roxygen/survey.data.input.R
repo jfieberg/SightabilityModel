@@ -2,7 +2,10 @@
 #'    the stratum (see stratum.var) and block (see block.id.var)
 #' @param survey.block.area A data frame containing for each block, the block id (see block.id.var), the
 #'    area of the block (see block.area.var). The data frame can contain information for other blocks that
-#'    were not surveyed (e.g. for the entire population of blocks) and additional block information will be ignored.
+#'    were not surveyed (e.g. for the entire population of blocks) and information from these
+#'    additional blocks will be ignored.
+#'    \strong{This data frame should NOT contain the stratum variable.}
+#'    
 #' @param stratum.data A data frame containing for each stratum, the stratum id (see stratum.var), the total
 #'    number of blocks in the stratum (see stratum.blocks.var) and the total area of the stratum (see stratum.area.var)
 #' @param density,abundance,numerator,denominator Right-handed formula identifying the variable(s) in the
