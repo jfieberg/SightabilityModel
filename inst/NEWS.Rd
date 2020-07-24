@@ -18,7 +18,8 @@
 \section{CHANGES IN VERSION 1.4.1}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
-      \item Updated documentation to emphasize that block.area dataframe should NOT have a stratum variable.
+      \item Modified code to only select variables of interest when doing merge to avoid merging on extraneous variables.
+      Package now produces a warning if redundant variables are detected rather than an error.
      }
    }
 }

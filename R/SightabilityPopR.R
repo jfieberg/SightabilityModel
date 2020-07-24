@@ -50,7 +50,7 @@ SightabilityPopR <- function(
       ,conf.level=0.90       # confidence interval level
 ){
 
-  version <- "2020-06-01"
+  version <- "2021-01-01"
  
 # Error checking
 # Be sure that survey.data, survey.block.area, and stratum.data are data.frames
@@ -110,13 +110,15 @@ SightabilityPopR <- function(
 # check the block area to the survey data
 # make sure no conflict with variable between the two sources except for block.id.var
   common.names <- intersect(names(survey.block.area), names(survey.data))
-  if(length(common.names)>1)stop("Too many common variables in survey.block.area and survey.data: ", paste(common.names, collapse=" "))
-  survey.data <- merge(survey.data, survey.block.area, by=block.id.var, all.x=TRUE)
+  if(length(common.names)>1)warning("Multiple common variables in survey.block.area and survey.data: ", paste(common.names, collapse=", "),
+                                    "; Will merge on the ", block.id.var," variable only.", immediate.=TRUE)
+  survey.data <- merge(survey.data, survey.block.area[,c(block.id.var, block.area.var)], by=block.id.var, all.x=TRUE)
   
 # Merge the stratum information to the survey data
   common.names <- intersect(names(stratum.data), names(survey.data))
-  if(length(common.names)>1)stop("Too many common variables in stratum info and survey data: ", paste(common.names, collapse=" "))
-  survey.data <- merge(survey.data, stratum.data,      by=stratum.var)
+  if(length(common.names)>1)warning("Multiple common variables in stratum info and survey data: ", paste(common.names, collapse=", "),
+                                    "; Will merge on the ", stratum.var," variable only.", immediate.=TRUE)
+  survey.data <- merge(survey.data, stratum.data[,c(stratum.var, stratum.blocks.var, stratum.area.var)],      by=stratum.var)
   
 # Check the density, abundance, numerator, and denominator variables
   Type= NA

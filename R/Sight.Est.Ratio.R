@@ -130,7 +130,7 @@ function(form, sdat=NULL, odat, sampinfo, method="Wong", logCI=TRUE, alpha=0.05,
   #   odat must contain two variables - numerator and denominator for the ratio of the two variables
   #   method must must be Wong - I have not implemented the SS methods for ratios
   
-  # Items marked with ### CJS ### are modifications to original start of code from Sight.Est make by me
+  # Items marked with ### CJS ### are modifications to original start of code from Sight.Est made by me
   
   # form = model formula (for fitting logistic regression model to sightability dataset)
   # sdat = sightability dataset containing response and sightability covariates
