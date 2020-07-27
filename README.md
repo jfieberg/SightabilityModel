@@ -1,3 +1,7 @@
+[![](https://cranlogs.r-pkg.org/badges/SightabilityModel)](https://cran.r-project.org/package=SightabilityModel)
+
+[![](http://cranlogs.r-pkg.org/badges/grand-total/SightabilityModel?color=orange)](https://cran.r-project.org/package=SightabilityModel)
+
 # SightabilityModel
 Contains code for the SightabilityModel Package
 
