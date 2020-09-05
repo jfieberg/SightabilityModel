@@ -8,11 +8,11 @@
 ## R CMD check results
 There were no ERRORs or WARNINGs. 
 
-There were 1  NOTES about maintainer email address switching 
-New maintainer:
-  Schwarz Carl <cschwarz.stat.sfu.ca@gmail.com>
-Old maintainer(s):
-  John Fieberg <jfieberg@umn.edu>
+There were 1  NOTES 
+
+* checking for future file timestamps ... NOTE
+unable to verify current time
+
 
 Updating package to fix documentation and a bug fix.
 
