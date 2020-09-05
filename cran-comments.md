@@ -14,7 +14,7 @@ New maintainer:
 Old maintainer(s):
   John Fieberg <jfieberg@umn.edu>
 
-I added functionality to this package (with permission of Fieberg) and am updating package.
+Updating package to fix documentation and a bug fix.
 
 ## Reverse dependencies
 None.
