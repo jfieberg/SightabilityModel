@@ -1,5 +1,5 @@
 ## Resubmission
-   - to be completed if re-submitted.
+* Fixed URL that used http: rather than https:
 
 ## Test environments
 * local OS X install, R 4.0.2
