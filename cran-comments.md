@@ -1,5 +1,7 @@
 ## Resubmission
 * Fixed URL that used http: rather than https:
+  Missed one in the citation directory - sorry!
+  Both devtools::check_win_release() and devtools::check_win_devel() show no issues
 
 ## Test environments
 * local OS X install, R 4.0.2
