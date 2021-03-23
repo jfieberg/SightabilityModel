@@ -136,7 +136,7 @@ function(total, srates, nh, Nh, stratum, subunit, covars, beta, varbeta, smat=NU
 
   # pkkprime for 2 observations from same stratum,h = (nh/Nh)*(nh-1)/(Nh-1)
     pkkprime <- as.vector(nh*(nh-1)/(Nh*(Nh-1)))
-  # names are lost, but they're needed for calculating Eq2.2.12t3 below
+  # names are lost, but they're needed for calculating Eq2.2.7t5 below
     names(pkkprime) <- names(nh)
 
   # Update to fix bug noted by Cliff Rice (when applied to a single sampling unit)
