@@ -99,6 +99,8 @@ Add any notes/warning to the cran-comments.md file and update GitHub
 
 Add any notes/warnings to the cran-comments.md file and update GitHub
 
+*** reverse dependency checks
+   devtools::revdep_check()
 
 *** Submit to CRAN
 - read http://r-pkgs.had.co.nz/release.html

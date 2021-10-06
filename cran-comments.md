@@ -1,7 +1,5 @@
-## Resubmission
-* Fixed URL that used http: rather than https:
-  Missed one in the citation directory - sorry!
-  Both devtools::check_win_release() and devtools::check_win_devel() show no issues
+## Submission
+Updating package to fix links to J. Statistical Software as requested by Editors.
 
 ## Test environments
 * local OS X install, R 4.1.1
@@ -10,15 +8,10 @@
 ## R CMD check results
 There were no ERRORs or WARNINGs. 
 
-There were 2  NOTES 
-
-* checking for future file timestamps ... NOTE
-unable to verify current time
+There were 1  NOTES 
 
 * checking sizes of PDF files under 'inst/doc' ... NOTE
 Unable to find GhostScript executable to run checks on size reduction
-
-Updating package to fix links to J. Statistical Software
 
 ## Reverse dependencies
 None.

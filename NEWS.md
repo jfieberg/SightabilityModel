@@ -1,3 +1,7 @@
 # SightabilityModel 1.4.2
 
-* Added a `NEWS.md` file to track changes to the package.
+* Updated URLs to Journal of Statisical Software to DOI as recommended by JSS editors.
+* No change in functionality
+
+
+
