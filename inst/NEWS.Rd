@@ -15,6 +15,15 @@
 %   }
 %}
 
+\section{CHANGES IN VERSION 1.4.2}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      \item Updated URLs for articles in Journal of Statistical Software to now use DOI.
+      \item NO changes in functionality.
+     }
+   }
+}
+
 \section{CHANGES IN VERSION 1.4.1}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{

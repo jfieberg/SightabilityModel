@@ -36,7 +36,7 @@ counts are used to estimate density, abundance or ratios (e.g. bulls to cows).
 
 ## References
 
-Fieberg, J. 2012. Estimating Population Abundance Using Sightability Models: R SightabilityModel Package. Journal of Statistical Software, 51(9), 1-20. URL http://www.jstatsoft.org/v51/i09/.
+Fieberg, J. 2012. Estimating Population Abundance Using Sightability Models: R SightabilityModel Package. Journal of Statistical Software, 51(9), 1-20. URL https://doi.org/10.18637/jss.v051.i09
 
 Steinhorst, Kirk R. and Samuel, Michael D. 1989. Sightability Adjustment Methods for Aerial Surveys of Wildlife Populations. Biometrics 45:415–425.
 

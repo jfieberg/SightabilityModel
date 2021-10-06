@@ -92,9 +92,9 @@ NULL
 #' MN moose survey data
 #' 
 #' Operational survey data for moose in MN (during years 2004-2007).  Each
-#' record corresponds to an indpendently sighted group of moose, with variables
+#' record corresponds to an independently sighted group of moose, with variables
 #' that capture individual covariates (used in the detection model) as well as
-#' plot-level information (stratum identifer, sampling probability, etc).
+#' plot-level information (stratum identifier, sampling probability, etc).
 #' 
 #' 
 #' @name obs.m
@@ -183,7 +183,7 @@ NULL
 #' Maintainer: John Fieberg <jfieberg@@umn.edu>
 #' @references Fieberg, J.  2012.  Estimating Population Abundance Using
 #' Sightability Models: R SightabilityModel Package. Journal of Statistical
-#' Software, 51(9), 1-20.  URL https://www.jstatsoft.org/v51/i09/.
+#' Software, 51(9), 1-20.  URL https://doi.org/10.18637/jss.v051.i09 
 #' 
 #' Steinhorst, Kirk R. and Samuel, Michael D. 1989. Sightability Adjustment
 #' Methods for Aerial Surveys of Wildlife Populations. Biometrics 45:415--425.

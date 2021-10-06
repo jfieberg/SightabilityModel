@@ -1,10 +1,4 @@
 Things to do for next release
-- plots of capture probability should have p on the right axis.
-- plots of abundance should have abundance on the right axis
-- move the Trinity report to the GitHub site. Update all references to the
-report using SFU URL to the GitHub site.
-- plot on values of p, use shading for inner and outer fences (geom_ribbon)
-- add "95% credible interval" to plots of logit(p) and log(u).
 
 
 Steps to create package

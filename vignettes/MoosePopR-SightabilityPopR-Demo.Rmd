@@ -1306,7 +1306,9 @@ Refer to Cochran (1977, Section 5A.14 ,*Estimating Domain Means*) for more detai
 # References
 Cochran, W.G. (1977). Sampling techniques. 3rd Edition. Wiley. New York.
 
-Fieberg, J. (2012). Estimating Population Abundance Using Sightability Models: R SightabilityModel Package. Journal of Statistical Software, 51(9), 1-20. URL https://www.jstatsoft.org/v51/i09/.
+Fieberg, J. (2012). Estimating Population Abundance Using Sightability Models: R SightabilityModel Package. 
+Journal of Statistical Software, 51(9), 1-20. 
+URL https://doi.org/10.18637/jss.v051.i09.
 
 Gasaway, W.C., S.D. Dubois, D.J. Reed and S.J. Harbo. (1986). 
 Estimating moose population parameters from aerial surveys. Biol. Pap. Univ. 
@@ -1317,8 +1319,9 @@ Lumley, T. (2019) "survey: analysis of complex survey samples". R package versio
 Quayle, J. F., A. G. MacHutchon, and D. N. Jury. (2001). Modeling moose sightability in south-central
 British Columbia. Alces 37:43–54. 
 
-R Core Team (2020). R: A language and environment for statistical computing. R Foundation for Statistical Computing,
-  Vienna, Austria. URL https://www.R-project.org/.
+R Core Team (2020). 
+R: A language and environment for statistical computing. R Foundation for Statistical Computing,
+Vienna, Austria. URL https://www.R-project.org/.
 
 Resource Inventory Standards Committee (RISC). (2002). Aerial-based inventory methods for selected 
 ungulates bison, mountain goat, mountain sheep, moose, elk, deer, and 

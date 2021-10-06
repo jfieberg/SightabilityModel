@@ -23,9 +23,9 @@ A data frame with 805 observations on the following 11 variables.
 }
 \description{
 Operational survey data for moose in MN (during years 2004-2007).  Each
-record corresponds to an indpendently sighted group of moose, with variables
+record corresponds to an independently sighted group of moose, with variables
 that capture individual covariates (used in the detection model) as well as
-plot-level information (stratum identifer, sampling probability, etc).
+plot-level information (stratum identifier, sampling probability, etc).
 }
 \examples{
 
