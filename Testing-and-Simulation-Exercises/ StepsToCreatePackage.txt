@@ -83,13 +83,11 @@ because the next steps require them to also be in the vignettes directory
   Notice that you need to download the html. Rmd, and asis files in the vignette for the
   install below to work.
  
-  devtools::install_github("cschwarz-stat-sfu-ca/SPAS", dependencies = TRUE,
+  devtools::install_github("jfieberg/SightabilityModel", dependencies = TRUE,
                         build_vignettes = TRUE)
 
-
 *** build a local version of the package
-  R CMD build BTSPAS
-  R CMD check --as-cran BTSPAS*.gz
+  Use the Build tools to do a check
 
 Add any notes/warning to the cran-comments.md file and update GitHub
 
