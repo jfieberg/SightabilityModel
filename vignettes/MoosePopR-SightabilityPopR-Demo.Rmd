@@ -36,6 +36,7 @@ The results from a 2018 survey of moose conducted according to methods
 described in RISC (2002) will be used for illustrative purposes.
 
 ## Survey protocol
+
 The survey area is divided in blocks (which are the primary sampling units, PSUs). 
 Blocks could be defined using a grid-system, or based on ecological factors such as elevation, type of vegetation, etc.
 The blocks do not have the same area, nor do they have to rectangular.
@@ -91,6 +92,7 @@ Data input consists of several datasets placed into an Excel workbook using diff
 worksheets for the different information. 
 
 ## Moose data
+
 This consists of information on group of moose observed in a selected blocks.
 The data should have a header row with the variable names for each column.
 
@@ -136,7 +138,7 @@ We check that the *NMoose* is computed properly by comparing the recorded total 
 a computed total number of moose. 
 
 ```{r echo=TRUE, message=TRUE, warning=TRUE}
-# check the total moose ead in vs computed number
+# check the total moose read in vs computed number
 survey.data$myNMoose <- survey.data$Bulls +
                        survey.data$Lone.Cows+
                        survey.data$Cow.W.1...calf*2+
@@ -162,17 +164,20 @@ xtabs(~Stratum, data=survey.data, exclude=NULL, na.action=na.pass)
 ```
 
 We can also add additional computed variables. For example, the number of cows is found as
+
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 survey.data$Cows <- survey.data$Lone.Cows + survey.data$Cow.W.1...calf + survey.data$Cow.W.2.calves
 ```
 
 The first few records of the counts of interest are:
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 head(as.data.frame(survey.data[,c("Block.ID","Stratum","Bulls","Lone.Cows","Cow.W.1...calf",
                     "Cow.W.2.calves","Cows","Lone...calf","Unk.Age.Sex","NMoose")]))
 ```
 
 ## Block area
+
 The area of each surveyed block is also needed. 
 ```{r echo=TRUE, message=TRUE, warning=TRUE}
 # Get the area of each block
@@ -191,8 +196,10 @@ names(survey.block.area)
 names(survey.data)
 ```
 
-Every block that is surveyed should have an area, but the block area file can have areas for blocks not surveyed (e.g. every block 
+Every block that is surveyed should have an area, but the block area file can have areas 
+for blocks not surveyed (e.g. every block 
 in the population of blocks). If a area is available for a block that was not surveyed, it is ignored.
+
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 # Check that every surveyed block has an area. The setdiff() should return null.
@@ -204,6 +211,7 @@ setdiff(survey.block.area$Block.ID, survey.data$Block.ID)
 
 
 ## Stratum information
+
 Information about each stratum such as the total area and total number of blocks is required
 
 ```{r echo=TRUE, message=TRUE, warning=TRUE}
@@ -213,13 +221,16 @@ stratum.data <- readxl::read_excel(
       skip=2,.name_repair="universal")
 stratum.data
 ```
+
 Ensure that the stratum labels match those used in the raw data
 
 ## Sightability model.
+
 A logistic regression comparing observed groups of moose to known groups of moose (e.g. based on radio collared moose)
 was used to estimate the sightability model (e.g. Quayle, 2001). 
 
 ### Extracting from *AerialSurvey*
+
 The sightability model used was extracted from the *AerialSurvey* (Unsworth, 1999)
 program input files and entered on the
 worksheet in the Excel workbook.
@@ -303,6 +314,7 @@ If the categorical variable has $K$ classes, you will need $K-1$ indicator varia
 for help on this issue.
 
 ### Reading coefficients of the model
+
 The information from the *AerialSurvey* (Unsworth, 1999) program was transferred to the
 Excel workbook containing the survey information for this study.
 
@@ -326,7 +338,7 @@ beta.terms <- unlist(readxl::read_excel(
 # Here the range is B3: C3 in the case of nbeta=2 etc
 cat("Names of the variables used in the sightability model:", beta.terms, "\n")
 
-# extract the beta coeffiences
+# extract the beta coefficients
 beta <- unlist(readxl::read_excel(
     system.file("extdata", "SampleMooseSurveyData.xlsx", package = "SightabilityModel", mustWork=TRUE),
     sheet="SightabilityModel",
@@ -346,9 +358,11 @@ beta.cov
 
 
 ```
+
 These values match those in the *AerialSurvey* (Unsworth, 1999) package.
 
 The estimated sightability and expansion factors at the group level (inverse of sightability) are:
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 Cover <- data.frame(intercept=1, VegCoverClass=1:5)
 Cover$logit.p <- as.matrix(Cover[,1:nbeta ]) %*% beta
@@ -375,6 +389,7 @@ So a single moose sighted in Vegetation Cover Class 5 is expanded to almost 72 m
 
 
 ### Creation of *VegCoverClass* variable
+
 We need to compute a *VegCoverClass* variable in the survey data. The *recode()* function
 from the *car* package is used. 
 
@@ -399,6 +414,7 @@ these observations.
 
 
 ## Key variables.
+
 There are several key variables used to match records across the raw data, block area, and stratum data frames. The 
 default variable names are:
 
@@ -415,6 +431,7 @@ The analysis function has arguments that can be changed if the names of these ke
 ## Dealing with missing and zero values
 
 ### Group information
+
 For each group sighted, the number of animals is recorded and may be divided by age and/or sex groupings.
 If no animals of a particular sex/age are seen in a group, then it should be recorded as zero rather than
 as missing.
@@ -427,6 +444,7 @@ number moose will be fine.
 No missing values are allowed in any count.
 
 ### Covariate information
+
 The sightability models use covariates at the group level to adjust for detection less than 100%.
 No missing values are allowed for the covariates. If the covariates are not available, then you 
 should not simply delete the group, but rather impute a value of the covariate that gives the highest 
@@ -453,15 +471,18 @@ compared to dropping the block.
 See the example in the Sightability section below on dealing with missing covariates.
 
 ### Blocks with no observed groups.
+
 It is possible that a block will be surveyed and NO animals seen in the entire block. In this case, you should
 insert a "dummy" observation for this block with counts of 0 for the number of moose to ensure that
 this surveyed block (with no animals seen) is properly accounted for. You can set the sightability variables
 to any value, because $0 \times \textrm{sightability~correction}$ is still 0.
 
 ### Block information
+
 Each block must have a known area. Missing values are not allowed.
 
 ### A single block in a stratum
+
 If a stratum has only a single block surveyed, then no design based estimate of variance
 is possible. This is known as the *lonely primarily sampling unit (lonely PSU)*. Ad hoc
 adjustments are possible; refer to
@@ -483,6 +504,7 @@ bound to the true uncertainty.
 The bottom line is avoid designs where you sample only a single block in a stratum!
 
 ### Stratum information
+
 Each stratum must have the known total area for the *MoosePop()* function and the
 known total number of blocks for the *SightabilityPopR()* function.
 
@@ -491,7 +513,9 @@ known total number of blocks for the *SightabilityPopR()* function.
 ## Analysis not adjusting for sightability 
 
 ### Within a stratum
+
 #### Density
+
 Suppose a sample of $n_h$ blocks were surveyed in stratum $h$. For each block, the number of moose $m_{hi}$
 and the area of the block $a_{hi}$ are obtained for block $i$ in stratum $h$. The estimated density of moose per unit area 
 in stratum $h$ is obtained as:
@@ -503,7 +527,9 @@ can be automatically computed using the *svyratio()* function in the *survey* pa
 Similar formula are used for estimating the density of other sex/age categories.
 
 #### Abundance
-The estimated total number of moose in stratum $h$ ($\widehat{M}_h$) is  found by multiply the density estimate and its standard error by the stratum area
+
+The estimated total number of moose in stratum $h$ ($\widehat{M}_h$) is  
+found by multiply the density estimate and its standard error by the stratum area
 $A_h$
 
 $$\widehat{M}_h = \widehat{D}_h  \times A_h$$
@@ -528,6 +554,7 @@ Other ratios such as calves:cows are computed in similar ways.
 ### Across all strata
 
 #### Density
+
 The overall density for the number of moose is found as a weighted averaged of the stratum specific densities:
 $$\widehat{D}= \sum_h \frac{A_h}{\sum_h A_h}\widehat{D}_h$$
 
@@ -540,6 +567,7 @@ Similar formula are used for estimating the density of other sex/age categories.
 
 
 #### Abundance
+
 The total abundance of moose is found by summing the estimated abundances across strata:
 
 $$\widehat{M} = \sum_h \widehat{M}_h$$
@@ -550,6 +578,7 @@ This is known as a *separate-ratio* estimator of the total and is possible becau
 Similar formula are used for estimating the abundance of other sex/age categories.
 
 #### Bull to Cow and other ratios
+
 The estimation of the overall bull to cow ratio is computed using the
 *double-ratio* estimate (Cochran, 1977, Section 6.19) as
 $$\widehat{BC}_{\textit{double~ratio}}=\frac{\widehat{B}}{\widehat{C}}$$
@@ -564,6 +593,7 @@ and the covariance of the estimates of number of bull and cows for each stratum 
 to find the overall ratio and standard error of the overall ratio. 
 
 ### The *MoosePopR()* function.
+
 A *MoosePopR()* function was created in *R* to replicate the results from *MoosePop* (Reed, 1989).
 The key arguments to this function are:
 
@@ -576,6 +606,7 @@ level for confidence intervals to compute with the default being a 90%
 confidence interval.
 
 ### Sample Analyses
+
 **Results differ slightly from those reported on an Excel spreadsheet because of slight differences
 in areas of blocks between data provided to me and that used in MoosePop (Reed, 1989)**.
 
@@ -611,6 +642,7 @@ each stratum. The overall density is found as a weighted average (by stratum are
 Similar function calls are used for estimating the density of other sex/age categories by changing the *density* argument.
 
 #### Abundance of all moose
+
 We compute the estimated (uncorrected for sightability) abundance of all moose (regardless of sex or age)
 by expanding the density by the *Stratum.Area*. The overall abundance is found
 as the sum of the expanded estimates.
@@ -624,6 +656,7 @@ result$"All.Abund.UC" <- MoosePopR(
 )
 result$"All.Abund.UC"
 ```
+
 The *estimate* and *SE* column as the estimated (uncorrected for sightability) 
 density of all moose with a measure of uncertainty for
 each stratum. The overall abundance is found as the sum of the estimates in each stratum.
@@ -651,9 +684,11 @@ result$"Cows.Abund.UC" <- MoosePopR(
 )  
 result$"Cows.Abund.UC"
 ```
+
 These values are computed similarly as the total abundance.
 
 #### Bull to Cow and other ratios
+
 Finally, we estimate the Bulls:Cows ratio:
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
@@ -670,12 +705,14 @@ Other ratios would be estimated in similar ways by changing the *numerator* and 
 to the function call.
 
 #### Final object
+
 ```{r echo=TRUE, warning=FALSE, message=FALSE}
 names(result)
 ```
 
 
 ## Adjusting for sightability
+
 The above computations are not adjusted for sightability, i.e. not all moose
 can be detected due to visibility concerns. 
 
@@ -751,7 +788,10 @@ kable(temp, row.names=FALSE,
                               " in using the block area in the analysis"))
 
 ```
-The correlations are not high and rarely exceed the cutoff where using block area would be beneficial.
+
+The correlations are not high. While about half of the response variables
+have correlations of abundance with block area that exceed the cutoff, the variation
+in the block areas is not that large, so we don't think that also adjusting for block area is necessary.
 Of course, this also does not account for sightability issues. 
 
 A plot of the two variables for each types of animals shows no strong relationship between 
@@ -768,7 +808,9 @@ Consequently, it not expected that ignoring block area in the analysis will have
 a material effect.
 
 ### Within a stratum
+
 #### Abundance
+
 Suppose a sample of $n_h$ blocks were surveyed in stratum $h$ out of $N_h$ total number of blocks. 
 For each block, the number of moose $m_{hjk}$
 are obtained for group $k$ in block $j$ in stratum $h$. The
@@ -786,6 +828,7 @@ package corrects the variance computations used by Steinhorst and Samuel (1989) 
 Similar computations are used for estimating the abundance of other sex/age categories.
 
 #### Density
+
 The estimated density of moose in stratum $h$ ($\widehat{D}_h$) is 
 found by dividing the abundance estimate and its standard error by the stratum area
 $A_h$
@@ -796,6 +839,7 @@ $$se(\widehat{M}_h) = \frac{se(\widehat{M}_h)}{A_h}$$
 Similar computations are used for estimating the density of other sex/age categories.
 
 #### Bull to Cow and other ratios
+
 The ratio of bulls to cows within a stratum is computed as the estimated abundances in each stratum:
 $$\widehat{BC}_h = \frac{\widehat{Bulls}_h}{\widehat{Cows}_h}$$
 i.e. as the estimated total number of bulls in the stratum
@@ -815,7 +859,9 @@ If the number of bulls per 100 cows is wanted, simply multiply the estimate and 
 Similar computations occur for other ratios such as calves:cows.
 
 ### Across all strata
+
 #### Abundance
+
 The total abundance of moose is found by summing the estimated abundances across strata:
 
 $$\widehat{M} = \sum_h \widehat{M}_h$$
@@ -825,6 +871,7 @@ This has been implemented in the *SightabilityModel* package (Fieberg, 2012) and
 Similar computations are used for estimating the abundance of other sex/age categories.
 
 #### Density
+
 The overall density of moose and its standard error 
 is found as estimated total abundance and its standard error
 divided by the total area over all strata..
@@ -836,6 +883,7 @@ Similar computations are used for estimating the density of other sex/age catego
 
 
 #### Bull to Cow and other ratios
+
 The estimation of the overall bull to cow ratio is computed as the ratios of their respective estimated
 abundances
 $$\widehat{BC}=\frac{\widehat{Bulls}}{\widehat{Cows}}$$
@@ -846,6 +894,7 @@ as part of this contract. Standard errors are computed as described in Wong (199
 Similar computations can be used for other ratios such as calves:cows.
 
 ### The *SightabilityPopR()* function
+
 I have created a function with the same calling arguments as the *MoosePopR()* function to
 estimate abundance, density, and ratios using the *SightabilityModel* package. 
 Notice that additional functionality was added to the *SightabilityModel* package (Fieberg, 2012) to estimate ratios.
@@ -879,7 +928,9 @@ Refer to
 the examples for details.
  
 ### Sample Analyses
+
 #### Dealing with missing values in the sightability covariates
+
 Because we are correcting for sightability, we need the *VegCoverClass* for all groups. However
 there are some groups of moose with missing data for this covariate:
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
@@ -909,6 +960,7 @@ for all moose, but similar code can be used for other age/sex categories. Simila
 considered the bull:cow ratio and other ratio can be computed in similar fashion.
 
 #### Abundance of all moose
+
 We compute the (corrected for sightability) abundance of all moose (regardless of sex or age) using the
 number of moose (*NMoose*) variable. 
 
@@ -957,6 +1009,7 @@ wrong.way <- SightabilityPopR( # show impact of deleting observations but keepin
 )
 wrong.way
 ```
+
 Notice the negative bias in the estimated abundance computed the incorrect way
 (`r round(wrong.way[wrong.way$Stratum==".OVERALL","estimate"])`) vs. the value
 when the *VegCoverClass* is set to the class with highest sightability 
@@ -971,7 +1024,6 @@ bias in dropping these groups by including them with an imputed high sightabilit
 #### Density of all moose
 
 We compute the estimated (corrected for sightability) density of all moose (regardless of sex or age).
-
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 result$"All.Density.C" <- SightabilityPopR(
@@ -998,8 +1050,8 @@ Similar function calls are used for estimating the density of other sex/age cate
 
 
 #### Number of bulls and number of cows
-We estimate the (corrected for sightability) abundance of Bulls and  cows.
 
+We estimate the (corrected for sightability) abundance of Bulls and  cows.
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 result$"Bulls.Abund.C" <- result$"All.Density.C" <- SightabilityPopR(
@@ -1029,6 +1081,7 @@ result$"Cows.Abund.C"
 These values are computed similarly as the total abundance.
 
 #### Bull to Cow and other ratios
+
 Finally we estimates the Bulls/Cow ratio using the corrected for sightability values.
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
@@ -1060,12 +1113,14 @@ in the function call.
 
 
 #### Final object
+
 The result is a list object with one element each of the analyses done above.
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 names(result)
 ```
 
 # Domain estimation
+
 Domain estimation refer to estimating density, abundance, or ratios for subsets of the survey area.
 For example, in British Columbia, a survey may take place over a combined Buckley Valley and Lake District (sub units)
 survey area, but estimates of abundance are also wanted for Buckley Valley and Lake District individually.
@@ -1076,6 +1131,7 @@ and stratum areas are known or unknown
 at the domain level  $\times$ the domain separation operates at the PSU (block) or group level.
 
 ## Domain at PSU (block) level; domain population information known
+
 This is the simplest case. Here the primary sampling units (PSU) (or blocks) are classified as belonging
 to the domain or not. For example, the study area could be divided into two or more management units
 and each PSU (block) belongs to one and only one management units in its entirety.
@@ -1090,6 +1146,7 @@ change the stratum information to refer to the total area and total PSUs (block)
 estimation for density, abundance, and ratios occurs exactly as before.
 
 ### Example
+
 For example, the survey data used in the examples was classified in Domain $A$ and $B$,
 and a separate worksheet in the workbook has information about stratum information for Domain $A$. We 
 subset the survey data, read in the stratum information for Domain $A$ and then
@@ -1097,13 +1154,16 @@ use the same methods as shown before.
 
 
 The PSUs (blocks) in the example are split between two domains (*A* and *B*) as shown below:
+
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 # PSU's are split between the domains
 xtabs(~Domain+Block.ID, data=survey.data, exclude=NULL, na.action=na.pass)
 ```
+
 The number of groups of moose in each block is shown. 
 
 We subset the survey data:
+
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 # Subset the survey data
 survey.data.A <- survey.data[ survey.data$Domain == "A",]
@@ -1152,19 +1212,22 @@ temp[,1:10]
 
 
 ## Domain at PSU (block) level; domain population information unknown.
+
 In some cases, only the surveyed PSUs can be classified by domain and the stratum total area and stratum total blocks
 is unknown for the domain. Cochran (1977, Sections 2.13 and 5A.14) discuss this case. 
 
 Abundance and ratios can be estimated by setting all survey data to 0 for blocks/groups not part of the domain,
 and then using the estimating functions on the complete data after zeroing. 
 This may seem strange, but consider the following table
-```                PSU
+```
+                    PSU
 Domain     A     A     A     A     B     B     B     B    B    B
 Y          2     3     3     4     5     3     2     3    2    4
 ```
 
 The total of $Y$ in Domain $A$ is $2+3+3+4=12$. If we consider the modified data
-```                PSU
+```
+                     PSU
 Domain     A     A     A     A     B     B     B     B    B    B
 Y'         2     3     2     3     0     0     0     0    0    0
 ```
@@ -1174,7 +1237,9 @@ of *Y'* by the population number of PSU (10) we get the domain total of $Total(y
 
 
 ### Example
+
 We set the survey data to 0 if the domain is not *A* (notice that we do NOT delete observations).
+
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 # Set number of moose to zero if not part of domain A
 survey.data.A.z <- survey.data
@@ -1182,6 +1247,7 @@ survey.data.A.z$NMoose[ survey.data$Domain != "A"] <- 0
 ```
 
 We now use the modified survey data (**survey.data.A.Z** but the original group and stratum data:
+
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 All.Abund.A.corrected.z <- SightabilityPopR(
       survey.data        = survey.data.A.z    # raw data with non-domain counts set to zero
@@ -1236,7 +1302,9 @@ We use the same trick as above by setting the survey data
 to 0 if the domain is not *A* (notice that we do NOT delete observations).
 
 ### Example
+
 Suppose we want moose abundance by vegetation cover class. The estimate of total abundance is
+
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 All.Abund <- SightabilityPopR(
       survey.data        = survey.data        # raw data
@@ -1255,6 +1323,7 @@ temp[,1:10]
 ```
 
 We will compute the total abundance for each vegetation cover class
+
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 All.Abund.vc <- plyr::llply(unique(survey.data$VegCoverClass), function(VegCover){
    # Set number of moose to zero if not part of domain A
@@ -1289,6 +1358,7 @@ All.Abund.vc.df <- plyr::rbind.fill( All.Abund.vc.df,
 All.Abund.vc.df
 
 ```
+
 The estimates sum to the estimate firstly computed, but the estimates from the individual 
 vegetation cover classes are not independent and so the overall standard error cannot be found
 from the separate estimates by vegetation cover class.
@@ -1304,6 +1374,7 @@ Refer to Cochran (1977, Section 5A.14 ,*Estimating Domain Means*) for more detai
 
 
 # References
+
 Cochran, W.G. (1977). Sampling techniques. 3rd Edition. Wiley. New York.
 
 Fieberg, J. (2012). Estimating Population Abundance Using Sightability Models: R SightabilityModel Package. 
