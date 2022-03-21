@@ -46,7 +46,7 @@ but the survey design could be inefficient, i.e. the uncertainty in the estimate
 larger compared to the standard error obtained from methods that account for different
 block area (see later in this document).
 
-Blocks are then stratified using a habitat model  into categories of relative moose densities.  
+Blocks are then stratified using a habitat model  into categories of relative moose densities.
 In this case, the blocks are stratified into three strata corresponding to *low*, *medium*, and *high* density
 depending on past years results, vegetation cover, and other attributes. There is no limit on the number of
 strata that can be defined, but usually three to five blocks would be sufficient.
@@ -475,7 +475,7 @@ See the example in the Sightability section below on dealing with missing covari
 It is possible that a block will be surveyed and NO animals seen in the entire block. In this case, you should
 insert a "dummy" observation for this block with counts of 0 for the number of moose to ensure that
 this surveyed block (with no animals seen) is properly accounted for. You can set the sightability variables
-to any value, because $0 \times \textrm{sightability~correction}$ is still 0.
+to any value, because $0 \times \textrm{sightability correction}$ is still 0.
 
 ### Block information
 
@@ -1270,7 +1270,7 @@ The estimates will be similar (but not exactly the same) between this analysis a
 Estimates of ratios can be found in the same way because these are based on abundances
 
 **However, estimates of density cannot be found using this method**. 
-Refer to Cochran (1977, Section 5A.14 ,*Estimating Domain Means*) for more details.
+Refer to Cochran (1977, Section 5A.14, *Estimating Domain Means*) for more details.
 
 
 ## Domain at group level; domain population information known
@@ -1366,7 +1366,7 @@ from the separate estimates by vegetation cover class.
 Estimates of ratios can be found in the same way because they are based on abundances.
 
 **However, estimates of density cannot be found using this method**. 
-Refer to Cochran (1977, Section 5A.14 ,*Estimating Domain Means*) for more details.
+Refer to Cochran (1977, Section 5A.14, *Estimating Domain Means*) for more details.
 
 
 
