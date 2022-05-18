@@ -1,6 +1,6 @@
 %\documentclass[article]{jss}
 \documentclass[nojss]{jss}
-%\VignetteIndexEntry{Estimating Population Abundance Using Sightability Models: R SightabilityModel Package}
+%\VignetteIndexEntry{a-Estimating Population Abundance Using Sightability Models: R SightabilityModel Package}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% declarations for jss.cls %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
