@@ -1,8 +1,8 @@
 Package: SightabilityModel
 Type: Package
 Title: Wildlife Sightability Modeling
-Version: 1.4.2
-Date: 2021-11-01
+Version: 1.5
+Date: 2022-06-01
 Authors@R: c(
     person("Fieberg", "John",       email = "jfieberg@umn.edu",               role = c("aut")),
     person("Schwarz", "Carl James", email = "cschwarz.stat.sfu.ca@gmail.com", role = c("aut","cre")))
@@ -20,17 +20,22 @@ Imports:
     utils
 License: GPL-2
 LazyLoad: yes
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.0
 Suggests:
     car,
     data.table,
+    GGally,
     ggplot2,
     kableExtra,
     knitr,
+    mvtnorm,
     readxl,
     reshape2,
     rmarkdown,
+    tidyr,
+    tidyverse,
     R.rsp
-VignetteBuilder: 
-    knitr,
-    R.rsp
+VignetteBuilder: R.rsp 
+
+
+

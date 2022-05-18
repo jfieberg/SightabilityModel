@@ -107,8 +107,47 @@ SightabilityPopR <- function(
   if( !is.numeric(survey.block.area[,block.area.var,drop=TRUE]))stop("block area must be numeric")
   if(sum(is.na(survey.block.area[,block.area.var,drop=TRUE]))>0)stop("Missing some block areas")
 
-# check the block area to the survey data
-# make sure no conflict with variable between the two sources except for block.id.var
+# There is a problem when you have a stratum that is censused with a single survey unit.
+# The survey package will fail because you cannot specify a FPC of 1 (ambiguous meaning 1 survey unit, or 100% of units sampled)
+# So we expand the census stratum with a single unit, to two units, one of which has no survey units and 1/2 of the 
+# survey area.
+# First find if there is stratum that has a censused with a single block. This would be indicated by the number of blocks ==1
+  
+   census.stratum <- unlist(stratum.data[stratum.data[, stratum.blocks.var]==1,stratum.var])
+   #browser()
+   if(length(census.stratum) > 0){
+     stratum.data[stratum.data[,stratum.var,drop=TRUE] %in% census.stratum ,stratum.blocks.var] <- 2 # set the number of blocks to 2.
+   
+     # Find the block.id's for this census stratum from the survey data
+     census.stratum.block.id <- unlist(unique(survey.data[ survey.data[,stratum.var,drop=TRUE] %in% census.stratum, block.id.var]))
+
+     # For these single blocks in a census that is surveyed, we divide the area by 2 and create a dummy
+     # block area with the other 1/2 of the area
+     survey.block.area[ survey.block.area[,block.id.var,drop=TRUE] %in% census.stratum.block.id, block.area.var]  <-
+     survey.block.area[ survey.block.area[,block.id.var,drop=TRUE] %in% census.stratum.block.id, block.area.var] /2 
+  
+     # We now create a "dummy" block with the other 1/2 of the area and a new block id
+     new.survey.block.area  <- survey.block.area[ survey.block.area[,block.id.var,drop=TRUE] %in% census.stratum.block.id,]
+     new.survey.block.area[, block.id.var]   <- paste0(new.survey.block.area[, block.id.var,drop=TRUE],"..","dummy")
+     survey.block.area <- rbind(survey.block.area, new.survey.block.area)
+     
+     #browser()
+     # We now need to create a dummy waypoint data with all the response variables set to zero
+     census.survey.data <- survey.data[ survey.data[,block.id.var,drop=TRUE] %in% census.stratum.block.id, ]
+     census.survey.data <- census.survey.data[ !duplicated(census.survey.data[,block.id.var,drop=TRUE]),]
+     census.survey.data[, block.id.var] <- paste0(census.survey.data[, block.id.var,drop=TRUE],"..","dummy") 
+     # Zero out the potential variables of interest
+     if(!is.null(density))    census.survey.data[, formula.tools::rhs.vars(density)    ] <- 0
+     if(!is.null(abundance))  census.survey.data[, formula.tools::rhs.vars(abundance)  ] <- 0
+     if(!is.null(numerator))  census.survey.data[, formula.tools::rhs.vars(numerator)  ] <- 0
+     if(!is.null(denominator))census.survey.data[, formula.tools::rhs.vars(denominator)] <- 0
+      
+     survey.data <- plyr::rbind.fill(survey.data, census.survey.data)
+   }
+   #browser()
+  
+  # check the block area to the survey data
+  # make sure no conflict with variable between the two sources except for block.id.var
   common.names <- intersect(names(survey.block.area), names(survey.data))
   if(length(common.names)>1)warning("Multiple common variables in survey.block.area and survey.data: ", paste(common.names, collapse=", "),
                                     "; Will merge on the ", block.id.var," variable only.", immediate.=TRUE)
