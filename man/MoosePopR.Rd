@@ -36,14 +36,11 @@ number of blocks in the stratum (see stratum.blocks.var) and the total area of t
 \item{density, abundance, numerator, denominator}{Right-handed formula identifying the variable(s) in the
 survey.data data frame for which the density, abundance, or ratio (numerator/denominator) are to be estimated.}
 
-\item{block.id.var}{Name of the variable in the survey.data data frame and survey.block.area data frame 
-that identifies the block.id 
-that links the block between the survey data and the block information.}
+\item{block.id.var}{Name of the variable in the data frames that identifies the block.id (the sampling unit)}
 
-\item{block.area.var}{Name of the variable in the survey.block.area data frame that contains the area of the blocks.}
+\item{block.area.var}{Name of the variable in data frames that contains the area of the blocks (area of sampling unit)}
 
-\item{stratum.var}{Name of the variable in the survey.data data frame and thee stratum.data data frame that identifies
-the stratum.}
+\item{stratum.var}{Name of the variable in the data frames that identifies the classical stratum}
 
 \item{stratum.blocks.var}{Name of the variable in the stratum.data data frame that contains the total number of
 blocks in the stratum.}
@@ -56,7 +53,7 @@ blocks in the stratum.}
 }
 \value{
 A data frame containing for each stratum and for all strata (identified as stratum id \code{.OVERALL}), the density,
-   or abundance or ratio estimate along with its estimated standard error and large-sample normal-based confidence
+   or abundance or ratio estimate along with its estimated standard error and large-sample normal-based confidence interval.
 }
 \description{
 A stratified random sample of blocks in a survey area is conducted.

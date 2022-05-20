@@ -9,6 +9,10 @@
 #'  The SightabilityPopR() function  adjusts for sightability < 100\%.
 #'
 #' @template survey.data.input
+#' @template block.id.var
+#' @template block.area.var
+#' @template stratum.var
+
 #' @template sightability.input
 #' @param conf.level Confidence level used to create confidence intervals.
 #' @return  A data frame containing for each stratum and for all strata (identified as stratum id \code{.OVERALL}), the density,
@@ -59,8 +63,8 @@ SightabilityPopR <- function(
   if( !is.data.frame(stratum.data))     stop("stratum.data is not a data frame")
 
 # Make sure that important variables are present
-  if( is.null(stratum.var) || !is.character(stratum.var) || !length(stratum.var)==1)stop("stratum.var is missing or not a character or not length 1")
-  if( is.null(block.id.var)|| !is.character(block.id.var)|| !length(stratum.var)==1)stop("stratum.var is missing or not a character or not length 1")
+  if( is.null(stratum.var) || !is.character(stratum.var) || !length(stratum.var)==1 )stop("stratum.var is missing or not a character or not length 1")
+  if( is.null(block.id.var)|| !is.character(block.id.var)|| !length(block.id.var)==1)stop("block.id.var is missing or not a character or not length 1")
   if( is.null(stratum.blocks.var)|| !is.character(stratum.blocks.var)|| !length(stratum.blocks.var)==1)
        stop("stratum.blocks.var is missing or not a character or not length 1")
   if( is.null(stratum.area.var)|| !is.character(stratum.area.var)|| !length(stratum.area.var)==1)
@@ -270,14 +274,14 @@ SightabilityPopR <- function(
       stratum.data <- stratum.data[ stratum.data$stratum==x$stratum[1],,drop=FALSE]
       # drop observations with 0 animals measured in x
       x <- x[ x$total>0,]
-      est.total <- SightabilityModel::Sight.Est(
+      est.total <- suppressWarnings(SightabilityModel::Sight.Est(
                        form    = sight.formula, #sightability functional form
                        odat    = x,                # observed data
                        sampinfo= stratum.data,  # stratum information
                        bet     = sight.beta,
                        varbet  = sight.beta.cov,
                        logCI   = sight.logCI,
-                       method  = sight.var.method)
+                       method  = sight.var.method))
       #browser()
       res.df <- data.frame(
                    Var1       = Var1,
@@ -297,14 +301,14 @@ SightabilityPopR <- function(
     #browser()
     # Now get the overall abundance
     survey.data <- survey.data[ survey.data$total>0,] # drop records with 0 animals observed
-    est.total <- SightabilityModel::Sight.Est(
+    est.total <- suppressWarnings(SightabilityModel::Sight.Est(
                        form    = sight.formula, #sightability functional form
                        odat    = survey.data,  # observed data
                        sampinfo= stratum.data,  # stratum information
                        bet     = sight.beta,
                        varbet  = sight.beta.cov,
                        logCI   = sight.logCI,
-                       method  = sight.var.method)
+                       method  = sight.var.method))
     #browser()
     total.df <- data.frame(
            Var1.obs.total = sum(survey.data[,Var1]),
@@ -340,14 +344,14 @@ SightabilityPopR <- function(
     stratum.res <- plyr::ddply(survey.data, stratum.var, function(x, stratum.data){
       # get the stratum data for this stratum
       stratum.data <- stratum.data[ stratum.data$stratum==x$stratum[1],,drop=FALSE]
-      est.ratio <- Sight.Est.Ratio(
+      est.ratio <- suppressWarnings(Sight.Est.Ratio(
                        form    = sight.formula, #sightability functional form
                        odat    = x,                # observed data
                        sampinfo= stratum.data,  # stratum information
                        bet     = sight.beta,
                        varbet  = sight.beta.cov,
                        logCI   = sight.logCI,
-                       method  = sight.var.method)
+                       method  = sight.var.method))
       #browser()
       res.df <- data.frame(
                    Var1           = numerator,
@@ -366,14 +370,14 @@ SightabilityPopR <- function(
     }, stratum.data=stratum.data)
     #browser()
     # Now get the overall ratio
-    est.ratio <- Sight.Est.Ratio(
+    est.ratio <- suppressWarnings(Sight.Est.Ratio(
                        form    = sight.formula, #sightability functional form
                        odat    = survey.data,  # observed data
                        sampinfo=stratum.data,  # stratum information
                        bet     = sight.beta,
                        varbet  = sight.beta.cov,
                        logCI   = sight.logCI,
-                       method  = sight.var.method)
+                       method  = sight.var.method))
     #browser()
     total.df <- data.frame(
           Var1.obs.total = sum(survey.data[,numerator]),

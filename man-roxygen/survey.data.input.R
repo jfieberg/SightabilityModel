@@ -9,12 +9,6 @@
 #'    number of blocks in the stratum (see stratum.blocks.var) and the total area of the stratum (see stratum.area.var)
 #' @param density,abundance,numerator,denominator Right-handed formula identifying the variable(s) in the
 #'    survey.data data frame for which the density, abundance, or ratio (numerator/denominator) are to be estimated.
-#' @param block.id.var Name of the variable in the survey.data data frame and survey.block.area data frame 
-#'    that identifies the block.id 
-#'    that links the block between the survey data and the block information.
-#' @param block.area.var Name of the variable in the survey.block.area data frame that contains the area of the blocks.
-#' @param stratum.var Name of the variable in the survey.data data frame and thee stratum.data data frame that identifies
-#'    the stratum.
 #' @param stratum.blocks.var Name of the variable in the stratum.data data frame that contains the total number of
 #'    blocks in the stratum.
 #' @param stratum.area.var  Name of the variable in the stratum.data data.frame that contains the total stratum area.

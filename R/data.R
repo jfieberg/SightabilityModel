@@ -32,7 +32,7 @@ NULL
 
 
 
-#' Mountain Goat Sightabilty Model Information
+#' Mountain Goat Sightability Model Information
 #' 
 #' Model averaged regression parameters and unconditional variance-covariance
 #' matrix for mountain goat sightability model (Rice et al. 2009)

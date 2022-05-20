@@ -57,14 +57,11 @@ using a normal-based confidence interval on \code{log(abundance)}}
 \item{sight.var.method}{What method should be used to estimate the variances after adjusting
 for sightability.}
 
-\item{block.id.var}{Name of the variable in the survey.data data frame and survey.block.area data frame 
-that identifies the block.id 
-that links the block between the survey data and the block information.}
+\item{block.id.var}{Name of the variable in the data frames that identifies the block.id (the sampling unit)}
 
-\item{block.area.var}{Name of the variable in the survey.block.area data frame that contains the area of the blocks.}
+\item{block.area.var}{Name of the variable in data frames that contains the area of the blocks (area of sampling unit)}
 
-\item{stratum.var}{Name of the variable in the survey.data data frame and thee stratum.data data frame that identifies
-the stratum.}
+\item{stratum.var}{Name of the variable in the data frames that identifies the classical stratum}
 
 \item{stratum.blocks.var}{Name of the variable in the stratum.data data frame that contains the total number of
 blocks in the stratum.}

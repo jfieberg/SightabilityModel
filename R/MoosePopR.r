@@ -8,10 +8,14 @@
 #'  Use the SightabilityPopR() function to adjust for sightability < 100\%.
 #'
 #' @template survey.data.input
+#' @template block.id.var
+#' @template block.area.var
+#' @template stratum.var
+
 #' @param conf.level Confidence level used to create confidence intervals.
 #' @param survey.lonely.psu How to deal with lonely PSU within strata. See \code{surveyoptions} in the \code{survey} package. 
 #' @return  A data frame containing for each stratum and for all strata (identified as stratum id \code{.OVERALL}), the density,
-#'    or abundance or ratio estimate along with its estimated standard error and large-sample normal-based confidence
+#'    or abundance or ratio estimate along with its estimated standard error and large-sample normal-based confidence interval.
 #' @template author 
 #' @template references
 #' @keywords ~MOOSEPOP ~moose surveys
@@ -59,7 +63,7 @@ MoosePopR <- function(
 
 # Make sure that important variables are present
   if( is.null(stratum.var) || !is.character(stratum.var) || !length(stratum.var)==1)stop("stratum.var is missing or not a character or not length 1")
-  if( is.null(block.id.var)|| !is.character(block.id.var)|| !length(stratum.var)==1)stop("stratum.var is missing or not a character or not length 1")
+  if( is.null(block.id.var)|| !is.character(block.id.var)|| !length(block.id.var)==1)stop("block.id.var is missing or not a character or not length 1")
   if( is.null(stratum.blocks.var)|| !is.character(stratum.blocks.var)|| !length(stratum.blocks.var)==1)
        stop("stratum.blocks.var is missing or not a character or not length 1")
   if( is.null(stratum.area.var)|| !is.character(stratum.area.var)|| !length(stratum.area.var)==1)

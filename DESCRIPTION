@@ -15,6 +15,7 @@ Imports:
     Matrix,
     msm,
     plyr,
+    mvtnorm,
     stats,
     survey,
     utils
@@ -28,7 +29,6 @@ Suggests:
     ggplot2,
     kableExtra,
     knitr,
-    mvtnorm,
     readxl,
     reshape2,
     rmarkdown,

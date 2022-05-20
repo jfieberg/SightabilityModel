@@ -3,7 +3,7 @@
 \docType{data}
 \name{g.fit}
 \alias{g.fit}
-\title{Mountain Goat Sightabilty Model Information}
+\title{Mountain Goat Sightability Model Information}
 \format{
 The format is: beta.g = list of regression parameters (intercept and
 parameters associated with GroupSize, Terrain, and X.VegCover) varbeta.g =
