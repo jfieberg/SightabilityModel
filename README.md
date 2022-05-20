@@ -18,7 +18,7 @@ devtools::install_github("jfieberg/SightabilityModel", dependencies = TRUE,
 ## Features
 Estimates abundance, density, and ratio of variables in simple random 
 sample or stratified random sample block design often used in studying
-ungulate populations. Can also be used with Domain Stratification (Heard et al., 2001)
+ungulate populations. Can also be used with Domain Stratification (Heard et al., 2008)
 but SE will have to be estimated using bootstrapping.
 
 In a typical study, the survey area is divided into strata and each
