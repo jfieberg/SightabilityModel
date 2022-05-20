@@ -35,7 +35,7 @@ Suggests:
     tidyr,
     tidyverse,
     R.rsp
-VignetteBuilder: R.rsp 
+VignetteBuilder: R.rsp, knitr 
 
 
 

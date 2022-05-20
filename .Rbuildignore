@@ -6,4 +6,5 @@ cran-comments*
 render-vignettes.R
 ^CRAN-RELEASE$
 Testing-and-Simulation-Exercises
+^CRAN-SUBMISSION$
 ^Meta$
