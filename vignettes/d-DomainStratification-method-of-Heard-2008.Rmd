@@ -7,10 +7,11 @@ output:
      toc: true
      number_sections: yes
 vignette: >
-  %\VignetteIndexEntry{d-Domain Stratification - Method of Heard 2008}
-  %\VignetteEncoding{UTF-8}
-  %\VignetteDepends{car, formula.tools, GGally, kableExtra, mvtnorm, plyr, readxl, SightabilityModel, tidyverse}
-  %\VignetteEngine{knitr::rmarkdown}
+#  %\VignetteIndexEntry{d-Domain Stratification - Method of Heard 2008}
+#  %\VignetteEncoding{UTF-8}
+#  %\VignetteDepends{car, formula.tools, GGally, kableExtra, mvtnorm, plyr, readxl, SightabilityModel, tidyverse}
+#  %\VignetteEngine{knitr::rmarkdown}
+# Dont need the above because you are using a static html vignette
 ---
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}

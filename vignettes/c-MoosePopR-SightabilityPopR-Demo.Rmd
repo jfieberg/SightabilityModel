@@ -9,7 +9,7 @@ output:
 vignette: >
   %\VignetteIndexEntry{c-MoosePopR and SightabilityPopR Demonstration}
   %\VignetteEncoding{UTF-8}
-  % \VignetteDepends{car, ggplot2, kableExtra, plyr, readxl}
+  %\VignetteDepends{car, ggplot2, kableExtra, plyr, readxl}
   %\VignetteEngine{knitr::rmarkdown}
 ---
 

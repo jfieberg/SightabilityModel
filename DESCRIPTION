@@ -1,7 +1,7 @@
 Package: SightabilityModel
 Type: Package
 Title: Wildlife Sightability Modeling
-Version: 1.5
+Version: 1.5.1
 Date: 2022-06-01
 Authors@R: c(
     person("Fieberg", "John",       email = "jfieberg@umn.edu",               role = c("aut")),
@@ -35,7 +35,4 @@ Suggests:
     tidyr,
     tidyverse,
     R.rsp
-VignetteBuilder: R.rsp, knitr 
-
-
-
+VignetteBuilder: R.rsp, knitr, rmarkdown

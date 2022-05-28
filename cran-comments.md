@@ -1,5 +1,5 @@
 ## Submission
-Functions for domain stratification added
+Update to fix issues with vignettes.
 
 ## Test environments
 * local OS X install, R 4.2.0

@@ -1,3 +1,9 @@
+# SightabilityModel 1.5.1
+
+* Fixup vignette index to sort properly
+* Misc small changes to vignettes
+* No new functionality added.
+
 # SightabilityModel 1.5
 
 * Added new vignette dealing with Domain stratification (Heard et al 2008)
