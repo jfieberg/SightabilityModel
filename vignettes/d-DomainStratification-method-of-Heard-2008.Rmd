@@ -6,11 +6,11 @@ output:
    rmarkdown::html_vignette:
      toc: true
      number_sections: yes
-#vignette: >
-#  \VignetteIndexEntry{d-Domain Stratification - Method of Heard 2008}
-#  \VignetteEncoding{UTF-8}
-#  \VignetteDepends{car, formula.tools, GGally, kableExtra, mvtnorm, plyr, readxl, SightabilityModel, tidyverse}
-#  \VignetteEngine{knitr::rmarkdown}
+vignette: >
+  %\VignetteIndexEntry{d-Domain Stratification - Method of Heard 2008}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteDepends{car, formula.tools, GGally, kableExtra, mvtnorm, plyr, readxl, SightabilityModel, tidyverse}
+  %\VignetteEngine{knitr::rmarkdown}
 ---
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
@@ -49,7 +49,7 @@ In this vignette we:
 
 - review the two different types of stratification
 - demonstrate how to analyze a domain stratified survey and the potential problems
-in using *MoosePopR()* and *SightabilityPopR()*
+in using *MoosePopR_DomStrat()* and *SightabilityPopR()*
 
 
 # Types of stratification
@@ -68,9 +68,9 @@ and separate, independent samples are taken from each stratum
 
 For example Gasaway et al (1986, p.8) defines stratification as 
 
-> The stratified sampling desing is a method that reduces variance.
+> The stratified sampling design is a method that reduces variance.
 > It is used to pool SUs into strata of different moose density, thereby
-> assigning as much total variance  as poosible to difference among strata.
+> assigning as much total variance  as possible to difference among strata.
 
 So each sampling unit is assigned to one and only stratum and a sampling unit
 cannot belong to more than one stratum.
@@ -144,7 +144,7 @@ Heard et al (2008) introduced a different form of stratification - namely within
 
 > To estimate moose numbers in the high population density stratum, a random sample of SUs was chosen from the entire study area 
 > and all moose were counted within all the S1 polygons in each selected SU. 
-> To estimate moose numbers in the low popualtion density stratum, 
+> To estimate moose numbers in the low population density stratum, 
 > a random sub-sample of SUs from the first sample was selected, and moose were counted within all the S2 polygons in those SUs.
 
 Now each sampling unit contains both domains (S1 and S2). The sampling design is two-phase method
@@ -343,9 +343,12 @@ domain estimation is reserved for the within-sampling-unit stratification.
 This has implications when using existing software. 
 For example the *MoosePopR()* and *SightabilityPopR()* functions 
 in the *SightabilityModel* package of R,
-assumes that strata are of the across-unit variety and is not designed to deal with the within-unit stratification
-without "arm twisting". **Software should not be used naively when the design includes domain stratification** without
-consideration of the correlation among the measurements on the domains in the same sampling unit.
+assumes that strata are of the across-unit variety and is not designed to deal with the within-unit stratification.
+
+Additional functions, *MoosePopR_DomStrat()* and *SightabilityPopR_DomStrat()* have been 
+included in the package to (partially) deal with domain stratification.
+However, these functions do not account for the impact of the correlation 
+among the measurements on the domains in the same sampling unit.
 
 It is difficult to determine analytically the extent of the bias of the uncertainty caused
 by measuring multiple domains on the same sampling unit, but three cases can illustrate the potential
@@ -503,7 +506,7 @@ in the estimates, and the naive approach to domain stratification will work perf
 # Data structures that allow for both types of stratification
 
 Careful data structures will be needed to ensure that both types of stratification can be
-dealt with when using *MoosePopR()* and *SightabilityPopR()*.
+dealt with when using *MoosePopR_DomeStrat()* and *SightabilityPopR()*.
 
 We have created an Excel workbook with (fictitious) but realistic data
 as an illustration of how to analyze a domain stratified survey.
@@ -581,6 +584,9 @@ SU.WayPoint <- readxl::read_excel(system.file("extdata", "ExampleDomainStratific
                                   sheet="WayPointData",
                                   skip=6,.name_repair="universal")
 
+if(any(is.na(SU.WayPoint)))stop("Missing values detected in WayPoint data - if null cells are 0, you need to do a replace here")
+
+
 head(SU.WayPoint[,c("Stratum","Domain","SamplingUnitID","Waypoint","Bulls.Total","Cows.Total","Total.Count")])
 tail(SU.WayPoint[,c("Stratum","Domain","SamplingUnitID","Waypoint","Bulls.Total","Cows.Total","Total.Count")])
 ```
@@ -641,121 +647,6 @@ The covariance matrix of the beta coefficients is:
 sightability.beta.cov
 ```
 
-## Pre-processing prior to analysis
-
-### Create a "new" stratum variable
-
-Prior to analysis, a NEW "stratum" variable should be created that is a combination 
-of the classical and domain stratification variables, e.g., using a code chunk similar to
-
-    x$Stratum.Domain <- paste(x$Stratum, "..", x$Domain) 
-
-This needs
-to occur in all the data frames passed to the *MoosePopR()* and *SightabilityPopR()* functions.
-This will identify the combination of stratum and domain as the "stratum" variable used in the analyses.
-
-### Create a "new" block id
-
-A new "block-id" variable needs to be created that is a combination of 
-the classical and domain stratification variables and the block id, e.g., using a code chunk similar
-to
-
-    x$Block.ID <-       paste0(x$Stratum.Domain, "..", x$SamplingUnitID)
- 
-This needs
-to occur in all the data frames passed to the *MoosePopR()* and *SightabilityPopR()* functions.
-This will identify the combination of stratum and domain and block-id as the "block-id" variable used in the analyses
-to distinguish the same block measured on multiple domains.
-
-### Some code to create the appropriate data structures
-
-In this document, the *naiveMoosePopR()* and *naiveSightabilityPopR()* functions (below)
-create the data structures needed to call the respective functions and do the function calls.
-
-
-```{r echo=TRUE, warning=FALSE, message=FALSE}
-naiveMoosePopR <- function(SU.Totals, SU.Selected, SU.WayPoint, 
-                           density=NULL, abundance=NULL, numerator=NULL, denominator=NULL,
-                           survey.lonely.psu="fail"){
-   # run a combination of classical and domain stratification through MoosePopR()  
-   # input data are survey total, block ids, and waypoint data
-  
-   # we create a separate stratum for each combination of stratum and domain
-   survey.data <- SU.WayPoint
-   survey.data$Stratum.Domain <- paste0(survey.data$Stratum, "..", survey.data$Domain)
-   survey.data$Block.ID <-       paste0(survey.data$Stratum.Domain, "..", survey.data$SamplingUnitID)
-   
-   survey.block.area <- SU.Selected
-   survey.block.area$Stratum.Domain <- paste0(survey.block.area$Stratum, "..", survey.block.area$Domain)
-   survey.block.area$Block.ID       <- paste0(survey.block.area$Stratum.Domain, "..", 
-                                              survey.block.area$SamplingUnitID)
-   survey.block.area$Block.Area     <- survey.block.area$SurveyedArea
-   
-   # Debugging statements.
-   # Check sample size in each combination of Stratum and Domain
-   #plyr::ddply(survey.block.area, c("StudyArea","Year","Stratum","Domain"), plyr::summarize,
-   #            n.blocks=length(Block.Area),
-   #            survey.area=sum(Block.Area))
-   # Check that every WayPoint blockid is in the blocs sampled data frame.
-   #survey.data$Block.ID %in% survey.block.area$Block.ID
-   
-   stratum.data <- SU.Totals
-   stratum.data$Stratum.Domain <- paste0(stratum.data$Stratum, "..", stratum.data$Domain)
-   stratum.data$Stratum.Blocks <- stratum.data$Total.SU
-   stratum.data$Stratum.Area   <- stratum.data$Total.SU.Area.km2
-   
-   #browser()
-   res <- MoosePopR(survey.data, survey.block.area, stratum.data,
-                    density=density, abundance=abundance, numerator=numerator, denominator=denominator,
-                    stratum.var="Stratum.Domain",
-                    survey.lonely.psu=survey.lonely.psu
-          )
-   res
-}
-```
-
-```{r echo=TRUE, warning=FALSE, message=FALSE}
-
-naiveSightabilityPopR <- function(SU.Totals, SU.Selected, SU.WayPoint, 
-                           density=NULL, abundance=NULL, numerator=NULL, denominator=NULL,
-                           sight.formula= observed~1, 
-                           sight.beta=10, 
-                           sight.beta.cov=matrix(0, nrow=1, ncol=1)){
-   # run a combination of classical and domain stratification through SightabilityPopR()  
-   # input data are survey total, block ids, and waypoint data
-  
-   # we create a separate stratum for each combination of stratum and domain
-   survey.data <- SU.WayPoint
-   survey.data$Stratum.Domain <- paste0(survey.data$Stratum, "..", survey.data$Domain)
-   survey.data$Block.ID <-       paste0(survey.data$Stratum.Domain, "..", survey.data$SamplingUnitID)
-   
-   survey.block.area <- SU.Selected
-   survey.block.area$Stratum.Domain <- paste0(survey.block.area$Stratum, "..", survey.block.area$Domain)
-   survey.block.area$Block.ID       <- paste0(survey.block.area$Stratum.Domain, "..", 
-                                              survey.block.area$SamplingUnitID)
-   survey.block.area$Block.Area     <- survey.block.area$SurveyedArea
-   
-   # Debugging statements.
-   # Check sample size in each combination of Stratum and Domain
-   #plyr::ddply(survey.block.area, c("StudyArea","Year","Stratum","Domain"), plyr::summarize,
-   #            n.blocks=length(Block.Area),
-   #            survey.area=sum(Block.Area))
-   # Check that every WayPoint blockid is in the blocs sampled data frame.
-   #survey.data$Block.ID %in% survey.block.area$Block.ID
-   
-   stratum.data <- SU.Totals
-   stratum.data$Stratum.Domain <- paste0(stratum.data$Stratum, "..", stratum.data$Domain)
-   stratum.data$Stratum.Blocks <- stratum.data$Total.SU
-   stratum.data$Stratum.Area   <- stratum.data$Total.SU.Area.km2
-   
-   res <- SightabilityPopR(survey.data, survey.block.area, stratum.data,
-                    density=density, abundance=abundance, numerator=numerator, denominator=denominator,
-                    sight.formula=sight.formula, sight.beta=sight.beta, sight.beta.cov=sight.beta.cov,
-                    stratum.var="Stratum.Domain"
-          )
-   res
-}
-```
 
 # Example
 
@@ -889,14 +780,20 @@ All units were selected in the *RiverBottom* stratum. A random sample of units w
 selected from the *Upland* stratum to have domain S1 measured, and
 a sub-sample of these units was sampled to have domain S2 measured.
 
-```{r echo=FALSE, warning=FALSE, message=FALSE, include=FALSE}
+```{r echo=FALSE, warning=TRUE, message=TRUE, include=TRUE}
 
 # check that matches the SU.totals
 SU.Selected$Stratum.Domain <- paste0(SU.Selected$Stratum  , "..",
                                      SU.Selected$Domain
                                      )
-setdiff(SU.Selected$Stratum.Domain, SU.Totals$Stratum.Domain)
-setdiff(SU.Totals$Stratum.Domain,   SU.Selected$Stratum.Domain)
+
+temp <- setdiff(SU.Selected$Stratum.Domain, SU.Totals$Stratum.Domain)
+if(length(temp)>0)stop("Stratum Domain combination in Selected data frame but not Totals data frame: ",
+                       paste(temp, collapse=", "))
+temp <- setdiff(SU.Totals$Stratum.Domain,   SU.Selected$Stratum.Domain)
+if(length(temp)>0)stop("Stratum Domain combination in Totals data frame but not Selected data frame: ",
+                       paste(temp, collapse=", "))
+
 ```
 
 The number of survey units selected in each classical or domain stratum is:
@@ -938,17 +835,34 @@ During the survey of a sampling unit (domain), groups of moose were seen at vari
 Any covariates used in the sightability model can be set to any arbitrary values since an inflation of 0 is still 0.
 
 
-```{r echo=FALSE, warning=FALSE, message=FALSE, include=FALSE}
+```{r echo=FALSE, warning=TRUE, message=TRUE, include=TRUE}
 # check that matches the SU.totals
 SU.WayPoint$Stratum.Domain <- paste0(SU.WayPoint$Stratum  , "..", SU.WayPoint$Domain )
-setdiff(SU.WayPoint$Stratum.Domain, SU.Selected$Stratum.Domain)
-setdiff(SU.Selected$Stratum.Domain, SU.WayPoint$Stratum.Domain)
+
+temp <- setdiff(SU.WayPoint$Stratum.Domain, SU.Selected$Stratum.Domain)
+if(length(temp)>0)stop("Stratum Domain combination in Waypoint data frame but not Selected data frame: ",
+                       paste(temp, collapse=", "))
+temp <- setdiff(SU.Selected$Stratum.Domain, SU.WayPoint$Stratum.Domain)
+if(length(temp)>0)stop("SStratum Domain combination in Selected data frame but not Waypoint data frame: ",
+                       "- did you forget to insert 0 records for sampling units with no animals seen?",
+                       paste(temp, collapse=", "))
+
 
 SU.WayPoint$Stratum.Domain.SU <- paste0(SU.WayPoint$Stratum.Domain, "..", SU.WayPoint$SamplingUnitID)
 SU.Selected$Stratum.Domain.SU <- paste0(SU.Selected$Stratum.Domain, "..", SU.Selected$SamplingUnitID)
 
 setdiff(SU.WayPoint$Stratum.Domain.SU,  SU.Selected$Stratum.Domain.SU  )
 setdiff(SU.Selected$Stratum.Domain.SU , SU.WayPoint$Stratum.Domain.SU )
+temp <- setdiff(SU.WayPoint$Stratum.Domain.SU,  SU.Selected$Stratum.Domain.SU  )
+if(length(temp)>0)stop("Stratum Domain combination in Waypoint data frame but not Totals data frame: ",
+                       paste(temp, collapse=", "))
+temp <- setdiff(SU.Selected$SStratum.Domain.SU , SU.WayPoint$Stratum.Domain.SU )
+if(length(temp)>0)warning("Stratum Domain combination in Totals data frame but not Waypoint data frame. ",
+                          "A dummy record with 0 counts will be inserted for the following blocks :",
+                       paste(temp, collapse=", "))
+
+
+
 
 # We need to insert "dummy" WayPoints for block that are surveyed but no animals seen
 SU.WayPoint <- merge(SU.WayPoint, SU.Selected[, c("Stratum","Domain","SamplingUnitID")],
@@ -962,8 +876,19 @@ SU.WayPoint$Stratum.Domain.SU <- paste0(SU.WayPoint$Stratum.Domain, "..", SU.Way
 setdiff(SU.WayPoint$Stratum.Domain.SU,  SU.Selected$Stratum.Domain.SU  )
 setdiff(SU.Selected$Stratum.Domain.SU , SU.WayPoint$Stratum.Domain.SU )
 
+temp <- setdiff(SU.WayPoint$Stratum.Domain.SU,SU.Selected$Stratum.Domain.SU  )
+if(length(temp)>0)stop("Stratum Domain Block ID combination in WayPoint but not in Selected ",
+                       paste(temp, collapse=", "))
+temp <- setdiff(SU.Selected$Stratum.Domain.SU , SU.WayPoint$Stratum.Domain.SU )
+if(length(temp)>0)stop("Stratum Domain Block ID combination in Selected but not in Waypoint ",
+                       paste(temp, collapse=", "))
+
 # set all the counts to 0
 count.vars <- c("Bulls.Total","Cows.Total","Calves.Total","Total.Count") 
+if(!all(count.vars %in% names(SU.WayPoint))){
+  stop("Some count vars are missing in WayPoint data ", paste(count.vars[ !count.vars %in% names(SU.WayPoint)], collapse=", "))
+}
+
 select <- is.na(SU.WayPoint$Waypoint)
 SU.WayPoint$Waypoint[select] <- "Inserted"
 SU.WayPoint[select, count.vars] <- 0
@@ -1044,9 +969,11 @@ Fieberg (2012) and later in this document.
 
 ## Uncorrected Estimation
 
-### Statistial theory used in MoosePopR()
+### Statistical theory used in the MoosePopR() family
 
 A naive approach is to treat each stratum/domain as a separate "stratum" when using the *MoosePopR()* function. 
+This has been coded in the *MoosePopR_DomStrat()* function.
+
 **Don't forget to add "dummy" waypoint data for blocks that were surveyed but no moose groups were seen.**
 
 The estimates for each stratum/domain will be unbiased; the estimated total over all strata/domains are also
@@ -1056,7 +983,7 @@ covariance between estimates in different domains caused by measuring some sampl
 
 #### Density
 
-The estimates of density computed using *MoosePopR()* are a mean-per-area for each stratum:
+The estimates of density computed using the *MoosePopR()* family are a mean-per-area for each stratum:
 
 Suppose a sample of $n_h$ blocks were surveyed in stratum $h$ from a population of $N_h$ blocks. 
 For each block, the number of moose $m_{hi}$
@@ -1141,16 +1068,21 @@ to find the overall ratio and standard error of the overall ratio.
 
 ### Density estimates uncorrected for sightability
 
-The UNCORRECTED estimates of density using *MoosePopR()* are:
+The UNCORRECTED estimates of density using *MoosePopR_DomStrat()* are:
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
+```{r echo=FALSE, warning=TRUE, message=FALSE}
 
-density.UC <- naiveMoosePopR(SU.Totals, SU.Selected, SU.WayPoint, density=~Total.Count)
+density.UC <- MoosePopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, density=~Total.Count,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
+ 
 #round_df(density.UC, 3)
 
 temp <- density.UC[,c("Stratum.Domain","Var1","Var2","Var1.obs.total","Var2.obs.total","estimate","SE")]
 kable(temp, row.names=FALSE,
-      caption="Estimated density from MoosePopR - uncorrected for sightability",
+      caption="Estimated density from MoosePopR_DomStrata - uncorrected for sightability",
       col.names=c("Stratum Domain","Num Var","Denom Var","Var 1 total","Var 2 total","Est","SE"),
       digits=c(0,0,0,  1,1,3,3)) %>%
       kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
@@ -1165,15 +1097,20 @@ were measured on both domains.**
 
 ### Abundance estimates uncorrected for sightability
 
-The UNCORRECTED estimates of abundance using *MoosePopR()* are:
+The UNCORRECTED estimates of abundance using *MoosePopR_DomStrat()* are:
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
+```{r echo=FALSE, warning=TRUE, message=FALSE}
 
-abund.UC <- naiveMoosePopR(SU.Totals, SU.Selected, SU.WayPoint, abundance=~Total.Count)
+abund.UC <- MoosePopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, abundance=~Total.Count,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
+
 #round_df(abund.UC,1)
 temp <- abund.UC[,c("Stratum.Domain","Var1","Var2","Var1.obs.total","Var2.obs.total","estimate","SE")]
 kable(temp, row.names=FALSE,
-      caption="Estimated abundance from MoosePopR - uncorrected for sightability",
+      caption="Estimated abundance from MoosePopR_DomStrat - uncorrected for sightability",
       col.names=c("Stratum Domain","Num Var","Denom Var","Var 1 total","Var 2 total","Est","SE"),
       digits=c(0,0,0,  1,1,0,0)) %>%
       kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
@@ -1237,76 +1174,7 @@ the waypoint data to a single record for each survey unit prior to resampling.
 SU.WayPoint.collapsed <- plyr::ddply(SU.WayPoint, c("Stratum","Domain","SamplingUnitID"), plyr::summarize,
                                      Total.Count= sum(Total.Count, na.rm=TRUE))
 
-boot.naive.MoosePopR <- function(SU.Totals, SU.Selected, SU.WayPoint,
-                                 density=NULL, abundance=NULL, numerator=NULL, denominator=NULL,
-                                 sight.model=NULL, sight.beta=NULL, sight.beta.cov=NULL){
-   # Which strata are 100% sampling, typically only 1 unit in stratum total table
-   census.strata <- SU.Totals$Stratum[ SU.Totals$Total.SU==1]
-   # We will bootstrap the S1/S2 data separated
-   # First determine which sample units have s1 only and which have s1/s2
-   SU.Selected.ndomains <- plyr::ddply(SU.Selected, c("Stratum","SamplingUnitID"), plyr::summarize,
-                                       n.domain= length(unique(Domain)))
-   SU.boot <- plyr::ddply(SU.Selected.ndomains, c("Stratum","n.domain"), function(x){
-         boot.sample <- sample(1:nrow(x), size=nrow(x), replace=TRUE)  
-        x <- x[boot.sample,]
-        x$SamplingUnitID.new <- paste0(1:nrow(x),"..",x$SamplingUnitID, "..", x$n.domain[1])
-        x$SamplingUnitID.new <- paste0(x$SamplingUnitID.new, 
-                                       ifelse((x$Stratum %in% census.strata),"..census",""))
-        x
-   })
-   
-   # Generate a new set of SU.Selected and SU.WayPoints for each element of the bootstrap sample
-   SU.Selected.boot <- plyr::adply(SU.boot, 1, function(x){
-       SU.select <- SU.Selected[ SU.Selected$SamplingUnitID == x$SamplingUnitID,]
-       SU.select$SamplingUnitID.old <- SU.select$SamplingUnitID
-       SU.select$SamplingUnitID     <- x$SamplingUnitID.new
-       #browser()
-       SU.select
-   })
 
-   SU.WayPoint.boot <- plyr::adply(SU.boot,1, function(x){
-       WP.select <- SU.WayPoint[ SU.WayPoint$SamplingUnitID == x$SamplingUnitID,]
-       WP.select$SamplingUnitID.old <- WP.select$SamplingUnitID
-       WP.select$SamplingUnitID <- x$SamplingUnitID.new
-       WP.select
-   })
-   #browser()
-   # adjust for sightability if the sighability model is specified
-   # assume a multivariate normal around the current beta with the specified covariance matrix
-   # then generate the density, abundance, numerator, denominator variables using the SCF
-   if(!is.null(sight.model)){
-      sight.beta.boot <- as.vector(mvtnorm::rmvnorm(1, mean=sight.beta,
-                                             sigma=sight.beta.cov))
-      #browser()
-      SU.WayPoint.boot$SCF <- compute.SCF(SU.WayPoint.boot, 
-                                          sight.model    = sight.model,
-                                          sight.beta     = sight.beta.boot,
-                                          sight.beta.cov = sight.beta.cov)
-      if(!is.null(density)){
-         var <- formula.tools::rhs.vars(density)
-         SU.WayPoint.boot[,var] <- SU.WayPoint.boot[,var] * SU.WayPoint.boot$SCF
-      }
-      if(!is.null(abundance)){
-         var <- formula.tools::rhs.vars(abundance)
-         SU.WayPoint.boot[,var] <- SU.WayPoint.boot[,var] * SU.WayPoint.boot$SCF
-      }
-      if(!is.null(numerator)){
-         var <- formula.tools::rhs.vars(numerator)
-         SU.WayPoint.boot[,var] <- SU.WayPoint.boot[,var] * SU.WayPoint.boot$SCF
-      }
-      if(!is.null(denominator)){
-         var <- formula.tools::rhs.vars(denominator)
-         SU.WayPoint.boot[,var] <- SU.WayPoint.boot[,var] * SU.WayPoint.boot$SCF
-      }
-   }
-   
-   res <- naiveMoosePopR(SU.Totals, SU.Selected.boot, SU.WayPoint.boot, 
-                         density=density, 
-                         abundance=abundance, 
-                         numerator=numerator, 
-                         denominator=denominator)
-   res
-   }
 ```
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE, include=FALSE}
@@ -1314,13 +1182,18 @@ boot.naive.MoosePopR <- function(SU.Totals, SU.Selected, SU.WayPoint,
 set.seed(343234)
 n.boot <- 500
 bootres <- plyr::rlply(n.boot, 
-                       boot.naive.MoosePopR(SU.Totals, SU.Selected, SU.WayPoint.collapsed,
-                                 density=~Total.Count, abundance=NULL, numerator=NULL, denominator=NULL)
+                       MoosePopR_DomStrat_bootrep(SU.Totals, SU.Selected, SU.WayPoint.collapsed,
+                                 density=~Total.Count, abundance=NULL, numerator=NULL, denominator=NULL,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
+
          )
 
 # extract estimates of overall density
 bootres.final <- plyr::ldply(bootres, function(x){
-    x[nrow(x),]
+    x$boot.res[nrow(x$boot.res),]
 })
 
 round_df(head(bootres.final),2)
@@ -1331,9 +1204,9 @@ The correlation among the estimates of density for the strata/domains are:
 ```{r echo=FALSE, warning=FALSE, message=FALSE, out.width="75%"}
 # Extract the bootstrap estimates for each stratum/domain
 temp <- plyr::ldply(bootres, function(x){
-    x[-nrow(x),]
+    x$boot.res[-nrow(x$boot.res),]
 })
-temp$boot.rep <- rep(1:n.boot, each=(nrow(bootres[[1]])-1))
+temp$boot.rep <- rep(1:n.boot, each=(nrow(bootres[[1]]$boot.res)-1))
 bootres.final.wide <- tidyr::pivot_wider(temp[,c("boot.rep","Stratum.Domain","estimate")],
                                           id_cols=boot.rep,
                                           names_from="Stratum.Domain",
@@ -1380,13 +1253,18 @@ The correlation among the estimates of abundance for each stratum/domain are:
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 # collect bootstrap samples
 bootres <- plyr::rlply(n.boot, 
-                       boot.naive.MoosePopR(SU.Totals, SU.Selected, SU.WayPoint.collapsed,
-                                 density=NULL, abundance=~Total.Count, numerator=NULL, denominator=NULL)
+                       MoosePopR_DomStrat_bootrep(SU.Totals, SU.Selected, SU.WayPoint.collapsed,
+                                 density=NULL, abundance=~Total.Count, numerator=NULL, denominator=NULL,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
+
          )
 
 # extract estimates of overall abundance
 bootres.final <- plyr::ldply(bootres, function(x){
-    x[nrow(x),]
+    x$boot.res[nrow(x$boot.res),]
 })
 ```
 
@@ -1394,9 +1272,9 @@ bootres.final <- plyr::ldply(bootres, function(x){
 ```{r echo=FALSE, warning=FALSE, message=FALSE, out.width="75%"}
 # Extract the bootstrap estimates for each stratum/domain
 temp <- plyr::ldply(bootres, function(x){
-    x[-nrow(x),]
+    x$boot.res[-nrow(x$boot.res),]
 })
-temp$boot.rep <- rep(1:n.boot, each=(nrow(bootres[[1]])-1))
+temp$boot.rep <- rep(1:n.boot, each=(nrow(bootres[[1]]$boot.res)-1))
 bootres.final.wide <- tidyr::pivot_wider(temp[,c("boot.rep","Stratum.Domain","estimate")],
                                           id_cols=boot.rep,
                                           names_from="Stratum.Domain",
@@ -1458,14 +1336,19 @@ for the *S1* domain, and multiply it by 1/2.
 
 We can estimate the number of bulls:
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
+```{r echo=FALSE, warning=TRUE, message=FALSE}
 
 #Estimate number of bulls * 100
-bulls.UC <- naiveMoosePopR(SU.Totals, SU.Selected, SU.WayPoint, abundance=~Bulls.Total)
+bulls.UC <- MoosePopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, abundance=~Bulls.Total,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
+
 #round_df(bulls.UC,1)
 temp <- bulls.UC[,c("Stratum.Domain","Var1","Var2","Var1.obs.total","Var2.obs.total","estimate","SE")]
 kable(temp, row.names=FALSE,
-      caption="Estimated number bulls from MoosePopR - uncorrected for sightability",
+      caption="Estimated number bulls from MoosePopR_DomStrat - uncorrected for sightability",
       col.names=c("Stratum Domain","Num Var","Denom Var","Var 1 total","Var 2 total","Est","SE"),
       digits=c(0,0,0,  1,1,0,0)) %>%
       kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
@@ -1476,15 +1359,20 @@ kable(temp, row.names=FALSE,
 
 We can estimate the number of cows:
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
+```{r echo=FALSE, warning=TRUE, message=FALSE}
 
 #Estimate number of cows*100
-cows.UC <- naiveMoosePopR(SU.Totals, SU.Selected, SU.WayPoint, abundance=~Cows.Total)
+cows.UC <- MoosePopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, abundance=~Cows.Total,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
+
 #round_df(cows.UC,1)
 
 temp <- cows.UC[,c("Stratum.Domain","Var1","Var2","Var1.obs.total","Var2.obs.total","estimate","SE")]
 kable(temp, row.names=FALSE,
-      caption="Estimated number cows from MoosePopR - uncorrected for sightability",
+      caption="Estimated number cows from MoosePopR_DomStrat - uncorrected for sightability",
       col.names=c("Stratum Domain","Num Var","Denom Var","Var 1 total","Var 2 total","Est","SE"),
       digits=c(0,0,0,  1,1,0,0)) %>%
       kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
@@ -1501,17 +1389,22 @@ We can use the above values to "manually" compute the bulls per 100 cows ratio.
 This gives a bull:100 cows ratio of `r round(bulls.100.cows,2)`, but no standard error. 
 
 But the ratio (and the standard error) can be found directly 
-using the *MoosePopR()* function and gives:
+using the the *MoosePopR()* family of functions and gives:
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
+```{r echo=FALSE, warning=TRUE, message=FALSE}
 
 #Estimate number of cows*100
 SU.WayPoint$Bulls.100.Total <- SU.WayPoint$Bulls.Total*100
-bulls.100.cows.UC <- naiveMoosePopR(SU.Totals, SU.Selected, SU.WayPoint, numerator=~Bulls.100.Total, denominator=~Cows.Total)
+bulls.100.cows.UC <- MoosePopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, numerator=~Bulls.100.Total, denominator=~Cows.Total,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
+
 #round_df(bulls.100.cows.UC,2)
 temp <- bulls.100.cows.UC[,c("Stratum.Domain","Var1","Var2","Var1.obs.total","Var2.obs.total","estimate","SE")]
 kable(temp, row.names=FALSE,
-      caption="Estimated bulls to 100 cows from MoosePopR - uncorrected for sightability",
+      caption="Estimated bulls to 100 cows from MoosePopR_DomStrat - uncorrected for sightability",
       col.names=c("Stratum Domain","Num Var","Denom Var","Var 1 total","Var 2 total","Est","SE"),
       digits=c(0,0,0,  1,1,0,0)) %>%
       kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
@@ -1529,10 +1422,10 @@ reported SE for the overall study area.
 
 ## Corrected for sightability estimation
 
-### Statistical theory used in SightabilityPopR()
+### Statistical theory used in the SightabilityPopR() family
 
 As before, a naive approach is to treat each stratum/domain as a separate "stratum" 
-when using the *SightabilityPopR()* function. 
+when using the *SightabilityPopR()* family of functions. 
 
 **Don't forget to add "dummy" waypoint data for blocks that were surveyed but no moose groups were seen.**
 
@@ -1549,13 +1442,13 @@ by measuring some sampling units in both domains.
 
 #### Abundance
 
-The estimates of density computed using *SightabilityPopR()* 
+The estimates of density computed using the *SightabilityPopR()* family of funtions
 are a *mean-per-unit* estimator for each stratum, but corrected for
-sightability. The *mean-per-unit* estimator used by *SightabilityPopR()*
-differs from the *mean-per-area* estimator used by *MoosePopR()* which can
-lead to cases where the estimated density/abundance from *SightabilityPopR()* 
+sightability. The *mean-per-unit* estimator used by *SightabilityPopR()* family
+differs from the *mean-per-area* estimator used by the *MoosePopR()* family which can
+lead to cases where the estimated density/abundance from the *SightabilityPopR()* family
 (after correcting for sightability)
-is less than that estimated by *MoosePopR()* (see below)
+is less than that estimated by the *MoosePopR()* family (see below)
 .
 Suppose a sample of $n_h$ blocks were surveyed in stratum $h$ out of $N_h$ total number of blocks. 
 For each block, the number of moose $m_{hjk}$
@@ -1636,19 +1529,24 @@ measured on the same sampling unit.**
 
 ### Density estimates corrected for sightability.
 
-The CORRECTED estimates of density using *SightabilityPopR()* are:
+The CORRECTED estimates of density using *SightabilityPopR_DomStrat()* are:
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
+```{r echo=FALSE, warning=TRUE, message=FALSE}
 
-density.C <- naiveSightabilityPopR(SU.Totals, SU.Selected, SU.WayPoint, density=~Total.Count,
-                                  sight.formula     =sightability.model,  #observed~ VegCoverClass,
+density.C <- SightabilityPopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, density=~Total.Count,
+                                  sight.formula     =sightability.model,  
                                   sight.beta        =sightability.beta,
-                                  sight.beta.cov    =sightability.beta.cov)
+                                  sight.beta.cov    =sightability.beta.cov,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
+
 density.C$SCF <- density.C$estimate / density.UC$estimate
 #round_df(density.C, 3)
 temp <- density.C[,c("Stratum.Domain","Var1","Var2","Var1.obs.total","Var2.obs.total","estimate","SE","SCF")]
 kable(temp, row.names=FALSE,
-      caption="Estimated density from SightabilityPopR - corrected for sightability",
+      caption="Estimated density from SightabilityPopR_DomStrat - corrected for sightability",
       col.names=c("Stratum Domain","Num Var","Denom Var","Var 1 total","Var 2 total","Est","SE",'SCF'),
       digits=c(0,0,0,  1,1,3,3, 2)) %>%
       kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
@@ -1659,20 +1557,25 @@ kable(temp, row.names=FALSE,
 
 ### Abundance estimates corrected for sightability.
 
-The UNCORRECTED estimates of abundance using *SightabilityPopR()* are:
+The UNCORRECTED estimates of abundance using *SightabilityPopR_DomStrat()* are:
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
+```{r echo=FALSE, warning=TRUE, message=FALSE}
 
-abund.C <- naiveSightabilityPopR(SU.Totals, SU.Selected, SU.WayPoint, abundance=~Total.Count,
+abund.C <- SightabilityPopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, abundance=~Total.Count,
                                   sight.formula     =sightability.model, #observed~ VegCoverClass,
                                   sight.beta        =sightability.beta,
-                                  sight.beta.cov    =sightability.beta.cov)
+                                  sight.beta.cov    =sightability.beta.cov,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
+
 abund.C$SCF <- abund.C$estimate / abund.UC$estimate
 
 #round_df(abund.C,2)
 temp <- abund.C[,c("Stratum.Domain","Var1","Var2","Var1.obs.total","Var2.obs.total","estimate","SE","SCF")]
 kable(temp, row.names=FALSE,
-      caption="Estimated abundance from SightabilityPopR - corrected for sightability",
+      caption="Estimated abundance from SightabilityPopR_DomStrat - corrected for sightability",
       col.names=c("Stratum Domain","Num Var","Denom Var","Var 1 total","Var 2 total","Est","SE",'SCF'),
       digits=c(0,0,0,  1,1,0,0, 2)) %>%
       kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
@@ -1691,18 +1594,23 @@ were measured on both domains.**
 
 We can estimate the number of bulls:
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
+```{r echo=FALSE, warning=TRUE, message=FALSE}
 
 #Estimate number of bulls * 100
-bulls.C <- naiveSightabilityPopR(SU.Totals, SU.Selected, SU.WayPoint, abundance=~Bulls.Total,
+bulls.C <- SightabilityPopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, abundance=~Bulls.Total,
                                   sight.formula     =sightability.model, #observed~ VegCoverClass,
                                   sight.beta        =sightability.beta,
-                                  sight.beta.cov    =sightability.beta.cov)
+                                  sight.beta.cov    =sightability.beta.cov,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
+
 
 #round_df(bulls.C,1)
 temp <- bulls.C[,c("Stratum.Domain","Var1","Var2","Var1.obs.total","Var2.obs.total","estimate","SE")]
 kable(temp, row.names=FALSE,
-      caption="Estimated bulls from MoosePopR - corrected for sightability ",
+      caption="Estimated bulls from MoosePopR_DomStrat - corrected for sightability ",
       col.names=c("Stratum Domain","Num Var","Denom Var","Var 1 total","Var 2 total","Est","SE"),
       digits=c(0,0,0,  1,1,0,0)) %>%
       kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
@@ -1713,18 +1621,23 @@ kable(temp, row.names=FALSE,
 
 We can estimate the number of cows:
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
+```{r echo=FALSE, warning=TRUE, message=FALSE}
 
 #Estimate number of cows*100
-cows.C <- naiveSightabilityPopR(SU.Totals, SU.Selected, SU.WayPoint, abundance=~Cows.Total,
+cows.C <- SightabilityPopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, abundance=~Cows.Total,
                                   sight.formula     =sightability.model, #observed~ VegCoverClass,
                                   sight.beta        =sightability.beta,
-                                  sight.beta.cov    =sightability.beta.cov)
+                                  sight.beta.cov    =sightability.beta.cov,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
+
 
 #round_df(cows.C,1)
 temp <- cows.C[,c("Stratum.Domain","Var1","Var2","Var1.obs.total","Var2.obs.total","estimate","SE")]
 kable(temp, row.names=FALSE,
-      caption="Estimated cows from MoosePopR - corrected for sightability ",
+      caption="Estimated cows from MoosePopR_DomStrat - corrected for sightability ",
       col.names=c("Stratum Domain","Num Var","Denom Var","Var 1 total","Var 2 total","Est","SE"),
       digits=c(0,0,0,  1,1,0,0)) %>%
       kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
@@ -1739,17 +1652,22 @@ bulls.100.cows.calc.C <- bulls.C[nrow(bulls.C),"estimate"]/cows.C[nrow(cows.C),"
 We can compute the bulls to 100 cows ratio "manually".
 This gives a bull:100 cows ratio of `r round(bulls.100.cows.calc.C,2)`, but no standard error. 
 
-The *SightabilityPopR()* function can compute this directly and gives:
+The *SightabilityPopR_DomStrat()* function can compute this directly and gives:
 
-```{r echo=FALSE, warning=FALSE, message=FALSE,include=FALSE }
+```{r echo=FALSE, warning=TRUE, message=FALSE,include=FALSE }
 
 #Estimate number of cows*100
 SU.WayPoint$Bulls.100.Total <- SU.WayPoint$Bulls.Total*100
-bulls.100.cows.C <- naiveSightabilityPopR(SU.Totals, SU.Selected, SU.WayPoint, 
+bulls.100.cows.C <- SightabilityPopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, 
                                   numerator=~Bulls.100.Total, denominator=~Cows.Total,
                                   sight.formula     =sightability.model, #observed~ VegCoverClass,
                                   sight.beta        =sightability.beta,
-                                  sight.beta.cov    =sightability.beta.cov)
+                                  sight.beta.cov    =sightability.beta.cov,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
+
 bulls.100.cows.C$SCF <- bulls.100.cows.C$estimate / bulls.100.cows.UC$estimate
 ```
 
@@ -1757,7 +1675,7 @@ bulls.100.cows.C$SCF <- bulls.100.cows.C$estimate / bulls.100.cows.UC$estimate
 #round_df(bulls.100.cows.C,1)
 temp <- bulls.100.cows.C[,c("Stratum.Domain","Var1","Var2","Var1.obs.total","Var2.obs.total","estimate","SE","SCF")]
 kable(temp, row.names=FALSE,
-      caption="Estimated bulls to 100 cows from MoosePopR - corrected for sightability ",
+      caption="Estimated bulls to 100 cows from MoosePopR_DomStrat - corrected for sightability ",
       col.names=c("Stratum Domain","Num Var","Denom Var","Var 1 total","Var 2 total","Est","SE","SCF"),
       digits=c(0,0,0,  1,1,0,0, 2)) %>%
       kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
@@ -1779,11 +1697,13 @@ the same sightability correction factor would apply to both the bulls
 
 **Note that some SCF appear to be < 1 in some strata/domain**. 
 This would seem to be logically impossible, but is an artefact of the different ways
-that abundance/density are computed in *MoosePopR()* and *SightabilityPopR()*. 
-In *MoosePopR*, abundance is computed using a mean-per-area estimator
+that abundance/density are computed in the *MoosePopR()* and *SightabilityPopR()* family of functions.
+
+In the *MoosePopR* family, abundance is computed using a mean-per-area estimator
 based on the number of animals per km$^2$ measured over all survey units 
-in a strata/domain expanded by the total survey area, 
-but in *SightabilityPopR()*, the mean-per-survey unit
+in a strata/domain expanded by the total survey area.
+
+In the *SightabilityPopR()* family, the mean-per-survey unit
 (regardless of area) is expanded by the number of survey units in the domain/stratum. 
 So some large/small areas measured in some survey units
 with large/small number of moose can lead to quite different estimates of abundance.
@@ -1869,7 +1789,7 @@ for the density as well (third set of values above).
 Now the SCF are all >1.
 
 It is not possible to compute an abundance estimator using a mean-per-area estimator
-using the *SightabilityPopR()* function because it will try to expand the area 
+using the *SightabilityPopR()* family of functions because it will try to expand the area 
 of abundance by the sightability correction factor as well.
 **Bummer**.
 
@@ -1877,7 +1797,7 @@ of abundance by the sightability correction factor as well.
 
 However, an approximation to the mean-per-area estimator using the sightability corrected counts can be done by 
 MANUALLY inflating the response variable by the SCF for each group,
-and passing the corrected counts to *MoosePopR()*. 
+and passing the corrected counts to the *MoosePopR()* family of functions. 
 This will give the correct point estimates, but the
 SE will be incorrect because it has not accounted for neither
 the multiple measurements on the same sampling unit,
@@ -1898,17 +1818,22 @@ SU.WayPoint $Total.Count.C <- SU.WayPoint$Total.Count * SU.WayPoint$SCF
 ```
 
 The  density estimates CORRECTED for the SCF  
-using a mean-per-area estimator using *MoosePopR()* are:
+using a mean-per-area estimator using *MoosePopR_DomStrat()* are:
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
+```{r echo=FALSE, warning=TRUE, message=FALSE}
 
-density.C.approx <- naiveMoosePopR(SU.Totals, SU.Selected, SU.WayPoint, density=~Total.Count.C)
+density.C.approx <- MoosePopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, density=~Total.Count.C,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
+
 density.C.approx$SCF <- density.C.approx$estimate / density.UC$estimate
 
 #round_df(density.C.approx, 3)
 temp <- density.C.approx[,c("Stratum.Domain","Var1","Var2","Var1.obs.total","Var2.obs.total","estimate","SE","SCF")]
 kable(temp, row.names=FALSE,
-      caption="Estimated density from MoosePopR - corrected for sightability by manually inflating counts by SCF",
+      caption="Estimated density from MoosePopR_DomStrat - corrected for sightability by manually inflating counts by SCF",
       col.names=c("Stratum Domain","Num Var","Denom Var","Var 1 total","Var 2 total","Est","SE",'SCF'),
       digits=c(0,0,0,  1,1,3,3, 2)) %>%
       kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
@@ -1916,16 +1841,21 @@ kable(temp, row.names=FALSE,
 ```
 
 The abundance estimates CORRECTED for the SCF
-using a mean-per-area estimator using *MoosePopR()* are:
+using a mean-per-area estimator using *MoosePopR_DomStrat()* are:
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
+```{r echo=FALSE, warning=TRUE, message=FALSE}
 
-abund.C.approx <- naiveMoosePopR(SU.Totals, SU.Selected, SU.WayPoint, abundance=~Total.Count.C)
+abund.C.approx <- MoosePopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, abundance=~Total.Count.C,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
+
 abund.C.approx$SCF <- abund.C.approx$estimate / abund.UC$estimate
 #round_df(abund.C.approx,2)
 temp <- abund.C.approx[,c("Stratum.Domain","Var1","Var2","Var1.obs.total","Var2.obs.total","estimate","SE","SCF")]
 kable(temp, row.names=FALSE,
-      caption="Estimated abundance from MoosePopR - corrected for sightability by manually inflating counts by SCF",
+      caption="Estimated abundance from MoosePopR_DomStrat - corrected for sightability by manually inflating counts by SCF",
       col.names=c("Stratum Domain","Num Var","Denom Var","Var 1 total","Var 2 total","Est","SE",'SCF'),
       digits=c(0,0,0,  1,1,0,0, 2)) %>%
       kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
@@ -1944,21 +1874,27 @@ variable and no sightability model.
 ```{r echo=TRUE, warning=FALSE, message=FALSE}
 set.seed(2343243)
 bootres <- plyr::rlply(n.boot, 
-                       boot.naive.MoosePopR(
+                       MoosePopR_DomStrat_bootrep(
                           SU.Totals, 
                           SU.Selected, 
                           SU.WayPoint,
                           density=NULL, 
                           abundance=~Total.Count.C, 
                           numerator=NULL, 
-                          denominator=NULL)
+                          denominator=NULL,
+                          
+                          stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                         ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                         ,block.id.var            ="SamplingUnitID"
+                         ,block.area.var          ="SurveyedArea")
+
          )
 ```
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 # extract estimates of overall density
 bootres.final <- plyr::ldply(bootres, function(x){
-    x[nrow(x),]
+    x$boot.res[nrow(x$boot.res),]
 })
 
 inflate.se.domain.strat <- plyr::summarize(bootres.final,
@@ -1983,14 +1919,14 @@ to deal with the correlation in the strata/domain estimates
 caused by measuring sampling units in both domains.
 
 We now bootstrap both the domain stratification and the sightability correction factor
-by passing the sightability function estimates and the orginal data. The sightability
+by passing the sightability function estimates and the original data. The sightability
 function coefficients are varied according to the covariance matrix for the estimated beta terms
 in the sightability function.
 
 ```{r echo=TRUE, warning=FALSE, message=FALSE}
 set.seed(2343243) # use the same seed so that we get the same simulated data
 bootres <- plyr::rlply(n.boot, 
-                       boot.naive.MoosePopR(
+                       MoosePopR_DomStrat_bootrep(
                          SU.Totals, 
                          SU.Selected, 
                          SU.WayPoint,
@@ -2000,7 +1936,12 @@ bootres <- plyr::rlply(n.boot,
                          density=NULL, 
                          abundance=~Total.Count, 
                          numerator=NULL, 
-                         denominator=NULL)
+                         denominator=NULL,
+                         stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                        ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                        ,block.id.var            ="SamplingUnitID"
+                        ,block.area.var          ="SurveyedArea")
+
          )
 ```
 
@@ -2008,7 +1949,7 @@ bootres <- plyr::rlply(n.boot,
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 # extract estimates of overall density
 bootres.final <- plyr::ldply(bootres, function(x){
-    x[nrow(x),]
+    x$boot.res[nrow(x$boot.res),]
 })
 
 inflate.se.domain.strat.SCF <- plyr::summarize(bootres.final,
@@ -2030,7 +1971,7 @@ kable(inflate.se.domain.strat.SCF, row.names=FALSE,
 We see that the actual SE for estimates of abundance needs to be inflated by about 
 `r round(inflate.se.domain.strat.SCF$se.inflate*100)-100`% 
 to deal with domain stratification and with the uncertainty in the sightability model.
-The addtional impact of the uncertainty in the sightability model on the SE for the estimated abundance is small.
+The additional impact of the uncertainty in the sightability model on the SE for the estimated abundance is small.
 
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
@@ -2059,7 +2000,10 @@ The addtional impact of the uncertainty in the sightability model on the SE for 
 ## Survey Design
 
 Both regular and domain stratification can be dealt with using the 
-*MoosePopR()* and *SightabilityPopR()* functions
+*MoosePopR_DomStrat()* and *SightabilityPopR_DomStrat()* functions
+which create "stata" based on a combination of stratum and domain values.
+However, the SE of the overall estimate does not account for the 
+multiple domains measured on some sampling units -- a bootstrap approach may be needed.
 
 When using domain stratification, randomly select sampling units 
 from which all domains are measured from ALL blacks (including those with no second domain).
@@ -2088,7 +2032,7 @@ so that the distinction between regular and domain stratification is clear.
 
 ## Analysis
 
-Here is a summary of the capabilities of *MoosePopR()* and *SightabilityPopR()*
+Here is a summary of the capabilities of *MoosePopR_DomStrat()* and *SightabilityPopR_DomStrat()*
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 # summary table of MoosePopR and SightabilityPopR functions
@@ -2138,8 +2082,8 @@ summary <- rbind(summary,
                 )
 
 kable(summary, row.names=FALSE,
-      caption="Summary of capababilities of MoosePopR and SightabilityPopR",
-      col.names=c("Estimator","Item","MoosePopR","SightabilityPopR"),
+      caption="Summary of capababilities of MoosePopR_DomStrat and SightabilityPopR_DomStrat",
+      col.names=c("Estimator","Item","MoosePopR_DomStrat","SightabilityPopR_DomStrat"),
       digits=c(0,0,0,0)) %>%
       add_footnote(c("Set area to 1; set total area to total number of survey units", 
                      "Set sightability model to ~1; set beta coefficient to 15; set beta vcov to 0",
@@ -2153,7 +2097,7 @@ kable(summary, row.names=FALSE,
 ```
 
 
-The *MoosePopR()* and *SightabilityPopR()* use different way to estimate 
+The *MoosePopR()* and *SightabilityPopR()* family of functions use different way to estimate 
 density (mean-per-area vs. mean-per-unit) If all the areas surveyed in
 the survey units are the same, the two methods give identical results.
 
@@ -2163,10 +2107,10 @@ Examples of the output from the two functions follow.
 
 For example, here are outputs from the mean-per-unit estimators for the total number of moose.
 
-#### MoosePopR - no correction for sightability
+#### MoosePopR_DomStrat - no correction for sightability
 
 The following table is the estimated abundance using a per-unit estimator without correction for sightability 
-from *MoosePopR()*.
+from *MoosePopR_DomStrat()*.
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 
@@ -2176,13 +2120,18 @@ temp.SU.Totals <- SU.Totals
 temp.SU.Totals$Total.SU.Area.km2 <- temp.SU.Totals$Total.SU  # change are to # of sampling units
 temp.SU.Selected <- SU.Selected
 temp.SU.Selected$SurveyedArea <- 1  # set the area to 1
-abund.PU.UC.MP <- naiveMoosePopR(temp.SU.Totals, temp.SU.Selected, SU.WayPoint, abund=~Total.Count)
+abund.PU.UC.MP <- MoosePopR_DomStrat(temp.SU.Totals, temp.SU.Selected, SU.WayPoint, abund=~Total.Count,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
+
 
 temp <- abund.PU.UC.MP[,c("Stratum.Domain","Var1","Var2","Var1.obs.total","Var2.obs.total","estimate","SE")]
 kable(temp, row.names=FALSE,
-      caption="Estimated abundance - MoosePopR - mean-per-unit - no correction for sightability",
+      caption="Estimated abundance - MoosePopR_DomStrat - mean-per-unit - no correction for sightability",
       col.names=c("Stratum Domain","Num Var","Denom Var","Var 1 total","Var 2 total","Est","SE"),
-      digits=c(0,0,0,  1,1,1,1)) %>%
+      digits=c(0,0,0,  1,1,0,0)) %>%
       kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
 ```
 
@@ -2194,20 +2143,25 @@ from *SightabilityPopR()*.
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 #-----------------------
 # Mean-per-unit - SightabilityPopR - no correction for sightability - this is the default model
-abund.PU.UC.SP <- naiveSightabilityPopR(SU.Totals, SU.Selected, SU.WayPoint, abund=~Total.Count)
+abund.PU.UC.SP <- SightabilityPopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, abund=~Total.Count,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
 
-temp <- abund.PU.UC.MP[,c("Stratum.Domain","Var1","Var2","Var1.obs.total","Var2.obs.total","estimate","SE")]
+
+temp <- abund.PU.UC.SP[,c("Stratum.Domain","Var1","Var2","Var1.obs.total","Var2.obs.total","estimate","SE")]
 kable(temp, row.names=FALSE,
       caption="Estimated abundance - SightabilityPopR - mean-per-unit - no correction for sightability",
       col.names=c("Stratum Domain","Num Var","Denom Var","Var 1 total","Var 2 total","Est","SE"),
-      digits=c(0,0,0,  1,1,1,1)) %>%
+      digits=c(0,0,0,  1,1,0,0)) %>%
       kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
 ```
 
-#### MoosePopR - correction for sightability
+#### MoosePopR_DomStrat - correction for sightability
 
 The following table is the estimated abundance using a per-unit estimator with correction for sightability 
-from *MoosePopR()*. 
+from *MoosePopR_DomStrat()*. 
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 #-----------------------
@@ -2222,13 +2176,18 @@ SU.WayPoint $SCF <- SightabilityModel::compute.SCF(SU.WayPoint,
                                                    sightability.beta, 
                                                    sightability.beta.cov)
 SU.WayPoint $Total.Count.C <- SU.WayPoint$Total.Count * SU.WayPoint$SCF
-abund.PU.C.MP <- naiveMoosePopR(temp.SU.Totals, temp.SU.Selected, SU.WayPoint, abund=~Total.Count.C)
+abund.PU.C.MP <- MoosePopR_DomStrat(temp.SU.Totals, temp.SU.Selected, SU.WayPoint, abund=~Total.Count.C,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
+
 
 temp <- abund.PU.C.MP[,c("Stratum.Domain","Var1","Var2","Var1.obs.total","Var2.obs.total","estimate","SE")]
 kable(temp, row.names=FALSE,
-      caption="Estimated abundance - MoosePopR - mean-per-unit - correction for sightability",
+      caption="Estimated abundance - MoosePopR_DomStrat - mean-per-unit - correction for sightability",
       col.names=c("Stratum Domain","Num Var","Denom Var","Var 1 total","Var 2 total","Est","SE"),
-      digits=c(0,0,0,  1,1,1,1)) %>%
+      digits=c(0,0,0,  1,1,0,0)) %>%
       kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
 ```
 
@@ -2242,10 +2201,15 @@ from *SightabilityPopR()*.
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 #-----------------------
 # Mean-per-unit - SightabilityPopR - correction for sightability - 
-abund.PU.C.SP <- naiveSightabilityPopR(SU.Totals, SU.Selected, SU.WayPoint, abund=~Total.Count,
+abund.PU.C.SP <- SightabilityPopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, abund=~Total.Count,
                                   sight.formula     =sightability.model, #observed~ VegCoverClass,
                                   sight.beta        =sightability.beta,
-                                  sight.beta.cov    =sightability.beta.cov)
+                                  sight.beta.cov    =sightability.beta.cov,
+                                  stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
+
 
 temp <- abund.PU.C.SP[,c("Stratum.Domain","Var1","Var1.obs.total","estimate","SE",
                          "VarTot","VarSamp","VarSight","VarMod")]
@@ -2254,7 +2218,7 @@ kable(temp, row.names=FALSE,
       col.names=c("Stratum Domain","Num Var","Var 1 total","Est","SE",
                   "Total","Sampling","Sightability","Model"),
       
-      digits=c(0,0,  1,  1,1, 0,0,0,0)) %>%
+      digits=c(0,0,  1,  0,0, 0,0,0,0)) %>%
       add_header_above(c(" "=5, "Components of variance in estimates"=4)) %>%
       kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
 
@@ -2262,61 +2226,70 @@ kable(temp, row.names=FALSE,
 
 
 Notice that the point estimates  from the mean-per-unit estimators when/when not corrected for sightability
-are the same between *MoosePopR()* and *SightabilityPopR()* (as they must be). The computed SE are
-different from the two functions when adjusting for sightability because *MoosePopR()* has no mechanism
+are the same between the *MoosePopR()* and *SightabilityPopR()* families (as they must be). The computed SE are
+different from the two functions when adjusting for sightability because the *MoosePopR()* famly has no mechanism
 for accounting for the uncertainty in the beta estimates. 
 
-However, notice from the output from  *SightabilityPopR()* that the largest component of variance
-in the estimates comes from the sampling variance and so the underreporting by *MoosePopR()* is small:
-`r `round(abund.PU.C.MP[nrow(abund.PU.C.MP),"SE"],1)` vs `r round(abund.PU.C.SP[nrow(abund.PU.C.MP),"SE"],1)`.
+However, notice from the output from  *SightabilityPopR_DomStrat()* that the largest component of variance
+in the estimates comes from the sampling variance and so the underreporting by *MoosePopR_DomStrat()* is small:
+`r `round(abund.PU.C.MP[nrow(abund.PU.C.MP),"SE"],1)` vs `r round(abund.PU.C.SP[nrow(abund.PU.C.SP),"SE"],1)`.
 
 ### Mean-per-area estimates
 
 An alternate estimator is the mean-per-area estimator which accounts for the different 
 areas measured on the sampling unit. As noted in the Vignettes that ship with the *SightabilityModel* package,
-the mean-per-area estimators are expected to have better precison if there is moderately
+the mean-per-area estimators are expected to have better precision if there is moderately
 large correlation between the count and the area, i.e., larger areas then to have larger counts and vice versa.
 
 It is not possible to compute the mean-per-area estimators with the *SightabilityPopR()* function.
 
-#### MoosePopR - no correction for sightability
+#### MoosePopR_DomStrat - no correction for sightability
 
 The following table is the estimated abundance using a per-area estimator without correction for sightability 
-from *MoosePopR()*.
+from *MoosePopR_DomStrat()*.
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 
-abund.PA.UC.MP <- naiveMoosePopR(SU.Totals, SU.Selected, SU.WayPoint, abundance=~Total.Count)
+abund.PA.UC.MP <- MoosePopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, abundance=~Total.Count,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
+
 
 #round_df(density.C.approx, 3)
 temp <- abund.PA.UC.MP[,c("Stratum.Domain","Var1","Var2","Var1.obs.total","Var2.obs.total","estimate","SE")]
 kable(temp, row.names=FALSE,
-      caption="Estimated abundance - MoosePopR - mean-per-unit - no correction for sightability",
+      caption="Estimated abundance - MoosePopR_DomStrat - mean-per-unit - no correction for sightability",
       col.names=c("Stratum Domain","Num Var","Denom Var","Var 1 total","Var 2 total","Est","SE"),
-      digits=c(0,0,0,  1,1,3,3)) %>%
+      digits=c(0,0,0,  1,1,0,0)) %>%
       kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
 ```
 
-#### MoosePopR - correction for sightability
+#### MoosePopR_DomStrat - correction for sightability
 
 The following table is the estimated abundance using a per-area estimator with correction for sightability 
-from *MoosePopR()*.
+from *MoosePopR_DomStrat()*.
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 
-abund.PA.C.MP <- naiveMoosePopR(SU.Totals, SU.Selected, SU.WayPoint, abundance=~Total.Count.C)
+abund.PA.C.MP <- MoosePopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, abundance=~Total.Count.C,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
 
 #round_df(density.C.approx, 3)
 temp <- abund.PA.C.MP[,c("Stratum.Domain","Var1","Var2","Var1.obs.total","Var2.obs.total","estimate","SE")]
 kable(temp, row.names=FALSE,
-      caption="Estimated density from MoosePopR - corrected for sightability by manually inflating counts by SCF",
+      caption="Estimated density from MoosePopR_DomStrat - corrected for sightability by manually inflating counts by SCF",
       col.names=c("Stratum Domain","Num Var","Denom Var","Var 1 total","Var 2 total","Est","SE"),
-      digits=c(0,0,0,  1,1,3,3)) %>%
+      digits=c(0,0,0,  1,1,0,0)) %>%
       kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
 
 ```
 
-The SE for the mean-per-area corrected for sightability will be too small because *MoosePopR()*
+The SE for the mean-per-area corrected for sightability will be too small because the *MoosePopR()* family
 cannot adjust for uncertainty in the sightability estimates, but it is assumed that any adjustment
 will again be small.
 
@@ -2331,7 +2304,7 @@ Not possible.
 ### Regular and domain stratification
 
 The analysis of moose population surveys that include both regular and domain stratification
-can be done using the *MoosePopR()* and *SightabilityPopR()* functions. Point estimates
+can be done using the *MoosePopR_DomStrat()* and *SightabilityPopR()* functions. Point estimates
 will be correct, but if domain stratification is used, the reported standard error
 for the overall density/abundance/ratios may not be correct because these do
 not account for the correlation in the estimates across domains caused by the
@@ -2352,22 +2325,22 @@ domain stratification.
 
 ### Computing the sightability correction factor
 
-The SCF in *SightabilityPopR()* is NOT computed as $1/\textit{probility of detection}$; 
+The SCF in *SightabilityPopR()* is NOT computed as $1/\textit{probability of detection}$; 
 see Fieberg (2012) for details.
 
-### What to do in practise
+### What to do in practice
 
-I would recommend to start with the *MoosePopR()* function without corrections for sightability because
+I would recommend to start with the *MoosePopR_DomStrat()* function without corrections for sightability because
 most surveys will not have equal areas surveyed in all blocks.
 
-Mannually correct the response variables for the Sightability Correction Factor (SCF) to get estimates
+Manually correct the response variables for the Sightability Correction Factor (SCF) to get estimates
 corrected for sightability, but be aware that the SE will be underreported. To get a "feel" for the amount
 of underreporting, examine the output from the *SightabilityPopR()* function to see what portion of 
 the variance of the estimate is attributable to the sightability correction.
 Alternatively, a bootstrap approach can be used to estimate the inflation factor for the SE to account for
 the uncertainty in the sightability model.
 **Future revisions to the SightabilityModel package may incorporate sightability corrections to 
-MoosePopR() so this step may be redundant when these revisions are done.**
+MoosePopR_DomStrat() so this step may be redundant when these revisions are done.**
 
 Both regular and domain stratification can be used with both functions.
 SE under regular stratification are correct; SE from domain stratification may not be correct because
@@ -2384,7 +2357,7 @@ mountain sheep, moose, elk, deer and caribou.
 Standards for Components of British Columbia's Biodiversity No. 32. Version 2, 
 BC Ministry of Sustainable Resource Management, Victoria, BC. 91 pp.
 
-Gasaway, W.C., S.D. DuBois, D.J. Reed, and S.J. Harbo. 1986. 
+Gasaway, W.C., S.D. Dubois, D.J. Reed, and S.J. Harbo. 1986. 
 Estimating moose population parameters from aerial surveys. 
 Biological Papers No 22, University of Alaska, Fairbanks, Alaska.
 
