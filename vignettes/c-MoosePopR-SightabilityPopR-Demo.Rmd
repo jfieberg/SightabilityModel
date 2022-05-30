@@ -28,6 +28,11 @@ library(SightabilityModel)
 
 ```
 
+# Availability of code
+
+The code for this vignette is available in the GitHub repository noted 
+in the *Description* file of this package. 
+
 # Introduction
 
 This document illustrates how to use the *MoosePopR()* and *SightabilityPopR()* functions to 

@@ -8,3 +8,6 @@ render-vignettes.R
 Testing-and-Simulation-Exercises
 ^CRAN-SUBMISSION$
 ^Meta$
+
+# ignore this file because html was prebuilt
+Vignettes/d-DomainStratification-method-of-Heard-2008.Rmd

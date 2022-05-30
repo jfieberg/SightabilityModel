@@ -12,6 +12,7 @@ vignette: >
 #  %\VignetteDepends{car, formula.tools, GGally, kableExtra, mvtnorm, plyr, readxl, SightabilityModel, tidyverse}
 #  %\VignetteEngine{knitr::rmarkdown}
 # Dont need the above because you are using a static html vignette
+# Also added to the .Rbuildignore to avoid package building notes
 ---
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
@@ -42,6 +43,10 @@ logit <- function(x){ log(x/(1-x))}
 expit <- function(x){ 1/(1+exp(-x))}
 ```
 
+# Availability of code
+
+The code for this vignette is available in the GitHub repository noted 
+in the *Description* file of this package. 
 
 # Introduction
 
@@ -852,15 +857,13 @@ if(length(temp)>0)stop("SStratum Domain combination in Selected data frame but n
 SU.WayPoint$Stratum.Domain.SU <- paste0(SU.WayPoint$Stratum.Domain, "..", SU.WayPoint$SamplingUnitID)
 SU.Selected$Stratum.Domain.SU <- paste0(SU.Selected$Stratum.Domain, "..", SU.Selected$SamplingUnitID)
 
-setdiff(SU.WayPoint$Stratum.Domain.SU,  SU.Selected$Stratum.Domain.SU  )
-setdiff(SU.Selected$Stratum.Domain.SU , SU.WayPoint$Stratum.Domain.SU )
 temp <- setdiff(SU.WayPoint$Stratum.Domain.SU,  SU.Selected$Stratum.Domain.SU  )
 if(length(temp)>0)stop("Stratum Domain combination in Waypoint data frame but not Totals data frame: ",
                        paste(temp, collapse=", "))
 temp <- setdiff(SU.Selected$SStratum.Domain.SU , SU.WayPoint$Stratum.Domain.SU )
 if(length(temp)>0)warning("Stratum Domain combination in Totals data frame but not Waypoint data frame. ",
-                          "A dummy record with 0 counts will be inserted for the following blocks :",
-                       paste(temp, collapse=", "))
+                          "A dummy record with 0 counts will be inserted for the following blocks :\n",
+                       paste(temp, collapse=", \n"))
 
 
 
@@ -874,8 +877,6 @@ SU.WayPoint$Stratum.Domain <- paste0(SU.WayPoint$Stratum  , "..",
                                      SU.WayPoint$Domain
                                     )
 SU.WayPoint$Stratum.Domain.SU <- paste0(SU.WayPoint$Stratum.Domain, "..", SU.WayPoint$SamplingUnitID)
-setdiff(SU.WayPoint$Stratum.Domain.SU,  SU.Selected$Stratum.Domain.SU  )
-setdiff(SU.Selected$Stratum.Domain.SU , SU.WayPoint$Stratum.Domain.SU )
 
 temp <- setdiff(SU.WayPoint$Stratum.Domain.SU,SU.Selected$Stratum.Domain.SU  )
 if(length(temp)>0)stop("Stratum Domain Block ID combination in WayPoint but not in Selected ",
@@ -2113,7 +2114,7 @@ For example, here are outputs from the mean-per-unit estimators for the total nu
 The following table is the estimated abundance using a per-unit estimator without correction for sightability 
 from *MoosePopR_DomStrat()*.
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
+```{r echo=FALSE, warning=TRUE, message=FALSE}
 
 # Mean-per-unit - MoosePopR - no correction for sightability
 # Create a temporary strata totals and sampling unit areas to get per-unit estimator
@@ -2141,7 +2142,7 @@ kable(temp, row.names=FALSE,
 The following table is the estimated abundance using a per-unit estimator without correction for sightability 
 from *SightabilityPopR()*.
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
+```{r echo=FALSE, warning=TRUE, message=FALSE}
 #-----------------------
 # Mean-per-unit - SightabilityPopR - no correction for sightability - this is the default model
 abund.PU.UC.SP <- SightabilityPopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, abund=~Total.Count,
@@ -2164,7 +2165,7 @@ kable(temp, row.names=FALSE,
 The following table is the estimated abundance using a per-unit estimator with correction for sightability 
 from *MoosePopR_DomStrat()*. 
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
+```{r echo=FALSE, warning=TRUE, message=FALSE}
 #-----------------------
 # Mean-per-unit - MoosePopR - correction for sightability
 # Create an adjusted total count
@@ -2199,7 +2200,7 @@ The SE is not adjusted for the uncertainty in the correction model.
 The following table is the estimated abundance using a per-unit estimator with correction for sightability 
 from *SightabilityPopR()*.
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
+```{r echo=FALSE, warning=TRUE, message=FALSE}
 #-----------------------
 # Mean-per-unit - SightabilityPopR - correction for sightability - 
 abund.PU.C.SP <- SightabilityPopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, abund=~Total.Count,
@@ -2233,7 +2234,7 @@ for accounting for the uncertainty in the beta estimates.
 
 However, notice from the output from  *SightabilityPopR_DomStrat()* that the largest component of variance
 in the estimates comes from the sampling variance and so the underreporting by *MoosePopR_DomStrat()* is small:
-`r `round(abund.PU.C.MP[nrow(abund.PU.C.MP),"SE"],1)` vs `r round(abund.PU.C.SP[nrow(abund.PU.C.SP),"SE"],1)`.
+`r round(abund.PU.C.MP[nrow(abund.PU.C.MP),"SE"],0)` vs `r round(abund.PU.C.SP[nrow(abund.PU.C.SP),"SE"],0)`.
 
 ### Mean-per-area estimates
 
@@ -2249,7 +2250,7 @@ It is not possible to compute the mean-per-area estimators with the *Sightabilit
 The following table is the estimated abundance using a per-area estimator without correction for sightability 
 from *MoosePopR_DomStrat()*.
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
+```{r echo=FALSE, warning=TRUE, message=FALSE}
 
 abund.PA.UC.MP <- MoosePopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, abundance=~Total.Count,
                                  stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
@@ -2272,7 +2273,7 @@ kable(temp, row.names=FALSE,
 The following table is the estimated abundance using a per-area estimator with correction for sightability 
 from *MoosePopR_DomStrat()*.
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
+```{r echo=FALSE, warning=TRUE, message=FALSE}
 
 abund.PA.C.MP <- MoosePopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, abundance=~Total.Count.C,
                                  stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
