@@ -687,7 +687,7 @@ if(strat.census)strat.census.id <- unique(SU.Totals$Stratum[SU.Totals$Total.SU==
 
 ```
 
-```{r echo=FALSE, warning=FALSE, message=FALSE, out.width="75%"}
+```{r echo=FALSE, warning=FALSE, message=FALSE, out.width="100%"}
 # Conceptual design for the Example
 # We need to see if there is both classical and domain stratification
 
@@ -796,7 +796,7 @@ block.all.select <- plyr::ldply(blocks, function(x){x$block.select})
 stratum.labels   <- plyr::ldply(blocks, function(x){data.frame(Stratum=x$Stratum, y=x$ymax)})
 
 myplot <- ggplot()+
-   ggtitle(paste0("Conceptual diagram of survey design for ",StudyArea," in ", Year))+
+   ggtitle(paste0("Conceptual diagram of survey design"))+
    scale_fill_identity()+
    theme(
         axis.text.x=element_blank(),
@@ -1681,7 +1681,7 @@ bulls.C <- SightabilityPopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, abunda
 #round_df(bulls.C,1)
 temp <- bulls.C[,c("Stratum.Domain","Var1","Var2","Var1.obs.total","Var2.obs.total","estimate","SE")]
 kable(temp, row.names=FALSE,
-      caption="Estimated bulls from MoosePopR_DomStrat - corrected for sightability ",
+      caption="Estimated bulls from SightabilityPopR_DomStrat - corrected for sightability ",
       col.names=c("Stratum Domain","Num Var","Denom Var","Var 1 total","Var 2 total","Est","SE"),
       digits=c(0,0,0,  1,1,0,0)) %>%
       kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
@@ -1708,7 +1708,7 @@ cows.C <- SightabilityPopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, abundan
 #round_df(cows.C,1)
 temp <- cows.C[,c("Stratum.Domain","Var1","Var2","Var1.obs.total","Var2.obs.total","estimate","SE")]
 kable(temp, row.names=FALSE,
-      caption="Estimated cows from MoosePopR_DomStrat - corrected for sightability ",
+      caption="Estimated cows from SightabilityPopR_DomStrat - corrected for sightability ",
       col.names=c("Stratum Domain","Num Var","Denom Var","Var 1 total","Var 2 total","Est","SE"),
       digits=c(0,0,0,  1,1,0,0)) %>%
       kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
@@ -1746,7 +1746,7 @@ bulls.100.cows.C$SCF <- bulls.100.cows.C$estimate / bulls.100.cows.UC$estimate
 #round_df(bulls.100.cows.C,1)
 temp <- bulls.100.cows.C[,c("Stratum.Domain","Var1","Var2","Var1.obs.total","Var2.obs.total","estimate","SE","SCF")]
 kable(temp, row.names=FALSE,
-      caption="Estimated bulls to 100 cows from MoosePopR_DomStrat - corrected for sightability ",
+      caption="Estimated bulls to 100 cows from SightabilityPopR_DomStrat - corrected for sightability ",
       col.names=c("Stratum Domain","Num Var","Denom Var","Var 1 total","Var 2 total","Est","SE","SCF"),
       digits=c(0,0,0,  1,1,0,0, 2)) %>%
       kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
