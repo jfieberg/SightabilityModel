@@ -687,7 +687,7 @@ if(strat.census)strat.census.id <- unique(SU.Totals$Stratum[SU.Totals$Total.SU==
 
 ```
 
-```{r echo=FALSE, warning=FALSE, message=FALSE, out.width="100%"}
+```{r echo=FALSE, warning=FALSE, message=FALSE, fig.width=6, out.width="100%"}
 # Conceptual design for the Example
 # We need to see if there is both classical and domain stratification
 
