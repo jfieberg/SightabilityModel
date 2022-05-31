@@ -666,71 +666,138 @@ The two classical strata are:
 - *RiverBottom* stratum consisting of lowlands where a complete census of all sampling units is performed
 - *Uplands* stratum consisting of all other areas. This is surveyed using a domain stratification.
 
+The *RiverBottom* stratum is sampled at 100% (i.e., a census). The *Upland* stratum 
+is sampled using a domain stratification.
+
 Conceptually, this design is:
 
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# determine if both standard stratification and/or domain stratification occurred
+# also check if any stratum is a census
+strat.domain <- FALSE  # is there domain stratification
+strat.census <- FALSE  # is any stratum a census
+strat.stand  <- FALSE  # standard stratification
+
+if(length(unique(SU.Totals$Domain))>1) strat.domain <- TRUE
+if(any(SU.Totals$Total.SU==1))         strat.census <- TRUE 
+if(length(unique(SU.Totals$Stratum))>1)strat.stand  <- TRUE
+
+strat.census.id <- ""
+if(strat.census)strat.census.id <- unique(SU.Totals$Stratum[SU.Totals$Total.SU==1])
+
+```
+
 ```{r echo=FALSE, warning=FALSE, message=FALSE, out.width="75%"}
-# Conceptual design for the example dataset
+# Conceptual design for the Example
+# We need to see if there is both classical and domain stratification
+
+# We assume that for standard stratification that you need at least 2 strata
+# One of the strata may be a domain stratification
 
 set.seed(2343243)
-# Generate grid of points
+# Generate grid of points for the strata/domains in the SU.Totals
 
-strat.blocks <- expand.grid(xmin=seq(0, .9, .1), ymin=seq(0, .9, .1))
-strat.blocks$xmax = strat.blocks$xmin+.1
-strat.blocks$ymax = strat.blocks$ymin+.1
-strat.blocks$color=ifelse(strat.blocks$ymin>= 0.6, "green", "blue")
+if(!all(c("Stratum","Domain","Total.SU") %in% names(SU.Totals))){
+   stop("Unable to draw schematic because stratum totals doesn't contain necessary variables")
+}
 
-strat.blocks.select <- plyr::ddply(strat.blocks, "color", function(x){
-   x[ sample(1:nrow(x), size=round(nrow(x)))  ,]  # 100% sampling
+temp.SU.Totals <- SU.Totals
+temp <- data.frame(Stratum=unique(temp.SU.Totals$Stratum))
+temp$y.start <- ((1:nrow(temp))-1)*0.4  # where to start on the y axis
+temp$y.end   <- ((1:nrow(temp)))*  0.4 -.1
+temp.SU.Totals <- merge(temp.SU.Totals,temp)
+temp.SU.Totals$color <- rainbow(nrow(temp.SU.Totals))
+#temp.SU.Totals$color <- terrain.colors(nrow(temp.SU.Totals))
+
+blocks <- plyr::dlply(temp.SU.Totals, "Stratum", function(xx){
+   #browser()
+   # check if this is a regular stratum
+   if(nrow(xx)==1){
+     block.start <- expand.grid(xmin=seq(0, .9, .1), ymin=seq(xx$y.start[1], xx$y.end[1], .1))
+     block.start$id <- paste0(xx$Stratum, "..", 1:nrow(block.start))
+     block <- plyr::adply(block.start, 1, function(x){
+       x$color <- xx$color[1] 
+       x$x <- x$xmin
+       x$y <- x$ymin
+       x2 <- x
+       x2$x <- x2$x + .1
+       x3 <- x2
+       x3$y <- x3$y + .1
+       x4 <- x3
+       x4$x <- x4$x - .1
+       x5 <- x4
+       x5$y <- x5$y-.1
+       rbind(x, x2, x3, x4, x5)
+     })
+     sampfrac <- ifelse(xx$Total.SU[1]==1, 1, .2) # check if census
+     block.select.id <- unique(block$id)[sample(1:length(unique(block.start$id)),
+                                                 size=round(sampfrac*length(unique(block.start$id))))]
+     block.select <- block[ block$id %in% block.select.id,] 
+   }
+  
+   # check if this is a domain stratification
+   #browser()
+   if(nrow(xx)>1){
+     block.start <- expand.grid(xmin=seq(0, .9, .1), ymin=seq(xx$y.start[1], xx$y.end[1], .1))
+     block.start$id <- paste0(xx$Stratum[1], "..", xx$Domain[1], "..", 1:nrow(block.start))
+     block.1 <- plyr::adply(block.start, 1, function(x){
+       #browser()
+       x$color <- xx$color[1]
+       x$x <- x$xmin
+       x$y <- x$ymin
+       x2 <- x
+       x2$x <- x2$x + .1
+       x3 <- x
+       x3$y <- x3$y + .1
+       x4 <- x
+       rbind(x, x2, x3, x4)
+     })
+     block.start <- expand.grid(xmin=seq(0, .9, .1), ymin=seq(xx$y.start[1], xx$y.end[1], .1))
+     block.start$id.1 <- paste0(xx$Stratum[1], "..", xx$Domain[1], "..", 1:nrow(block.start))
+     block.start$id   <- paste0(xx$Stratum[1], "..", xx$Domain[2], "..", 1:nrow(block.start))
+     block.2 <- plyr::adply(block.start, 1, function(x){
+       x$color <- xx$color[2]
+       x$x <- x$xmin+.1
+       x$y <- x$ymin+.1
+       x2 <- x
+       x2$x <- x2$x - .1
+       x3 <- x
+       x3$y <- x3$y - .1
+       x4 <- x
+       rbind(x, x2, x3, x4)
+     })
+     #browser()
+     block <- plyr::rbind.fill(block.1, block.2)
+     # randomly select from first domain
+     block.1.id <- unique(block.1$id)
+     block.1.select.id <- block.1.id[sample(1:length(block.1.id),
+                                            size=round(.2*length(block.1.id)))]
+     block.1.select <- block.1[ block.1$id   %in% block.1.select.id,] 
+     block.2.select <- block.2[ block.2$id.1 %in% block.1.select.id,]
+     # random select second domain
+     block.2.select <- plyr::ddply(block.2.select, "id", function(x){
+       if(runif(1) < .7)x$color="white"
+       x
+     })
+     block.2.select$block.2$id.1 <- NULL
+     block.select <- plyr::rbind.fill(block.1.select, block.2.select)
+   }
+  
+   list(Stratum     =xx$Stratum[1],
+        block       =block,
+        block.select=block.select,
+        ymax        =max(block$y))
+  
 })
 
-strat.blocks        <-strat.blocks[ strat.blocks$ymin >= 0.6,]
-strat.blocks.select <-strat.blocks.select[ strat.blocks.select$ymin >= 0.6,]
+# pull off all of the blocks
+block.all        <- plyr::ldply(blocks, function(x){x$block})
+block.all.select <- plyr::ldply(blocks, function(x){x$block.select})
+stratum.labels   <- plyr::ldply(blocks, function(x){data.frame(Stratum=x$Stratum, y=x$ymax)})
 
-
-domain.block.1    <- expand.grid(x=seq(0, 1, .1), y=seq(0, .5, .1))
-domain.block.1$color <- "red"
-domain.block.1$id <- paste0("red..", 1:nrow(domain.block.1))
-domain.block.1 <- plyr::adply(domain.block.1, 1, function(x){
-    x2 <- x
-    x2$x <- x2$x + .1
-    x3 <- x
-    x3$y <- x3$y + .1
-    x4 <- x
-    rbind(x, x2, x3, x4)
-})
-
-domain.block.2    <- expand.grid(x=seq(.1, 1, .1), y=seq(.1, .6, .1))
-domain.block.2$color <- "blue"
-domain.block.2$id <- paste0("blue..", 1:nrow(domain.block.2))
-domain.block.2 <- plyr::adply(domain.block.2, 1, function(x){
-    x2 <- x
-    x2$x <- x2$x - .1
-    x3 <- x
-    x3$y <- x3$y - .1
-    x4 <- x
-    rbind(x, x2, x3, x4)
-})
-
-domain.block <- rbind(domain.block.1, domain.block.2)
-
-domain.block.1.id.select <- unique(domain.block.1$id)
-domain.block.1.id.select <- domain.block.1.id.select[sample(1:length(domain.block.1.id.select), size=round(.2*length(domain.block.1.id.select)))]
-domain.block.1.select <- domain.block.1[ domain.block.1$id %in% domain.block.1.id.select,] 
-
-domain.block.2.select <- plyr::ddply(domain.block.1.select, "id", function(x){
-    x$x[c(1,4)] <- x$x[c(1,4)]+ .1
-    x$y[c(1,4)] <- x$y[c(1,4)]+ .1
-    x$color="blue"
-    if(runif(1) < .7)x$color="white"
-    x$id <- gsub("red","blue",x$id)
-    x
-})
-
-ggplot()+
-   ggtitle("Conceptual diagram of survey design")+
-   geom_rect(data=strat.blocks, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, fill=color), alpha=0.2)+
+myplot <- ggplot()+
+   ggtitle(paste0("Conceptual diagram of survey design for ",StudyArea," in ", Year))+
    scale_fill_identity()+
-   geom_rect(data=strat.blocks.select, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, fill=color), alpha=1)+
    theme(
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank(),
@@ -740,23 +807,25 @@ ggplot()+
   scale_x_continuous(breaks = seq(0, 1, .1), 
                    limits = c(0,1), 
                    expand = c(0,0))+
-  scale_y_continuous(breaks = seq(0, 1, .1), 
-                   limits = c(0,1), 
-                   expand = c(0,0))+
-  xlab("Light color=SU not sampled; \ndark color=selected SU; \nwhite=SU selected, but not measured on S2")+
-  geom_polygon(data=domain.block, aes(x=x, y=y, fill=color, group=id), alpha=0.2)+
-  geom_polygon(data=domain.block.1.select, aes(x=x, y=y, fill=color, group=id), alpha=1)+
-  geom_polygon(data=domain.block.2.select, aes(x=x, y=y, fill=color, group=id), alpha=1)+
-  geom_hline(yintercept=seq(0,1, .1))+
-  geom_vline(xintercept=seq(0,1, .1))+
-  annotate("text", label="RiverBottom Stratum", x=Inf, y=Inf, hjust=1.5, vjust=1.5, size=5)+
-  annotate("text", label="Upland Stratum", x=0.1, y=0.55, hjust=0, vjust=.5, size=5)
+  scale_y_continuous(breaks = seq(min(block.all$y), max(block.all$y), .1), 
+                   limits   = c(  min(block.all$y), max(block.all$y)), 
+                   expand   = c(  0,0))+
+  geom_polygon(data=block.all,        aes(x=x, y=y, fill=color, group=id), alpha=0.2)+
+  geom_polygon(data=block.all.select, aes(x=x, y=y, fill=color, group=id), alpha=1)+
+  geom_text(data=stratum.labels, aes(x=Inf, y=y, label=Stratum), hjust=1.5, vjust=1.5, size=5)
 
-  
+myplot <- myplot +
+  geom_hline(yintercept=seq(min(block.all$y),max(block.all$y), .1))+
+  geom_vline(xintercept=seq(0,1, .1))
+if(strat.stand| (!strat.stand & !strat.domain))myplot <- myplot +
+  xlab("Light color=SU not sampled; dark color=selected SU")
+if(strat.domain)myplot <- myplot +
+  xlab("Light color=SU not sampled; dark color=selected SU;\n white=SU selected, but not measured on second domain")
+
+
+myplot
 ```
 
-The *RiverBottom* stratum is sampled at 100% (i.e., a census). The *Upland* stratum 
-is sampled using a domain stratification.
 
 ## Data Values
 
