@@ -918,7 +918,7 @@ temp <- setdiff(SU.WayPoint$Stratum.Domain, SU.Selected$Stratum.Domain)
 if(length(temp)>0)stop("Stratum Domain combination in Waypoint data frame but not Selected data frame: ",
                        paste(temp, collapse=", "))
 temp <- setdiff(SU.Selected$Stratum.Domain, SU.WayPoint$Stratum.Domain)
-if(length(temp)>0)stop("SStratum Domain combination in Selected data frame but not Waypoint data frame: ",
+if(length(temp)>0)stop("Stratum Domain combination in Selected data frame but not Waypoint data frame: ",
                        "- did you forget to insert 0 records for sampling units with no animals seen?",
                        paste(temp, collapse=", "))
 
@@ -929,13 +929,10 @@ SU.Selected$Stratum.Domain.SU <- paste0(SU.Selected$Stratum.Domain, "..", SU.Sel
 temp <- setdiff(SU.WayPoint$Stratum.Domain.SU,  SU.Selected$Stratum.Domain.SU  )
 if(length(temp)>0)stop("Stratum Domain combination in Waypoint data frame but not Totals data frame: ",
                        paste(temp, collapse=", "))
-temp <- setdiff(SU.Selected$SStratum.Domain.SU , SU.WayPoint$Stratum.Domain.SU )
+temp <- setdiff(SU.Selected$Stratum.Domain.SU , SU.WayPoint$Stratum.Domain.SU )
 if(length(temp)>0)warning("Stratum Domain combination in Totals data frame but not Waypoint data frame. ",
                           "A dummy record with 0 counts will be inserted for the following blocks :\n",
                        paste(temp, collapse=", \n"))
-
-
-
 
 # We need to insert "dummy" WayPoints for block that are surveyed but no animals seen
 SU.WayPoint <- merge(SU.WayPoint, SU.Selected[, c("Stratum","Domain","SamplingUnitID")],
@@ -2444,3 +2441,10 @@ Fieberg, J.R. (2012).
 Estimating Population Abundance Using Sightability Models: R SightabilityModel Package. 
 Journal of Statistical Software, 51(9), 1-20. 
 https://doi.org/10.18637/jss.v051.i09
+
+```{r echo=FALSE, warning=TRUE, message=FALSE}
+# generate purl'd code of this vignette
+knitr::purl("d-DomainStratification-method-of-Heard-2008.Rmd", 
+            output="d-DomainStratification-method-of-Heard-2008-source.R",
+            documentation=2)
+```
