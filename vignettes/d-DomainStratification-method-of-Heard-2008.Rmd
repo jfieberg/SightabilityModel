@@ -2142,14 +2142,14 @@ temp$LCL.adj <- temp$est.adj.scf + qnorm((1-temp$conf.level)/2)*temp$SE.adj.SCF.
 temp$UCL.adj <- temp$est.adj.scf + qnorm((1+temp$conf.level)/2)*temp$SE.adj.SCF.ds
 
 temp <- temp[,c("Stratum.Domain","estimate","SE","SCF","est.adj.scf","SE.adj.scf","se.inflate","SE.adj.SCF.ds",
-                "LCL.adj","UCL.adj")]
+                "conf.level","LCL.adj","UCL.adj")]
 temp <- temp[order(temp$Stratum.Domain),]
 kable(temp, row.names=FALSE,
       caption="Estimated abundance using per-area (MoosePopR), corrected for sightability, and domain stratification",
-      col.names=c("StratumDomain","Est","SE","SCF","Est","SE","SE inflate","SE","LCL", "UCL"),
-      digits=c(0, 0,0, 2, 0,0, 2, 0,0,0)) %>%
+      col.names=c("StratumDomain","Est","SE","SCF","Est","SE","SE inflate","SE","Conf level","LCL", "UCL"),
+      digits=c(0, 0,0, 2, 0,0, 2, 0,  2,0,0)) %>%
       add_header_above(c(" "=1, "Uncorrected for SCF"=2,
-                         " "=1, "Apply SCF"=2," "=1,"Corrected for SCF and domain"=3)) %>%
+                         " "=1, "Apply SCF"=2," "=1,"Corrected for SCF and domain"=4)) %>%
       kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
 
 ```
@@ -2219,14 +2219,14 @@ temp$LCL.adj <- temp$est.adj.scf + qnorm((1-temp$conf.level)/2)*temp$SE.adj.SCF.
 temp$UCL.adj <- temp$est.adj.scf + qnorm((1+temp$conf.level)/2)*temp$SE.adj.SCF.ds
 
 temp <- temp[,c("Stratum.Domain","estimate","SE","SCF","est.adj.scf","SE.adj.scf","se.inflate","SE.adj.SCF.ds",
-                "LCL.adj","UCL.adj")]
+                "conf.level","LCL.adj","UCL.adj")]
 temp <- temp[order(temp$Stratum.Domain),]
 kable(temp, row.names=FALSE,
       caption="Estimated density using per-area (MoosePopR), corrected for sightability, and domain stratification",
-      col.names=c("StratumDomain","Est","SE","SCF","Est","SE","SE inflate","SE","LCL", "UCL"),
-      digits=c(0, 3,3, 2, 3,3, 2, 3,3,3)) %>%
+      col.names=c("StratumDomain","Est","SE","SCF","Est","SE","SE inflate","SE","Conf level","LCL", "UCL"),
+      digits=c(0, 0,0, 2, 0,0, 2, 0,  2,0,0)) %>%
       add_header_above(c(" "=1, "Uncorrected for SCF"=2,
-                         " "=1, "Apply SCF"=2," "=1,"Corrected for SCF and domain"=3)) %>%
+                         " "=1, "Apply SCF"=2," "=1,"Corrected for SCF and domain"=4)) %>%
       kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
 
 ```
@@ -2302,14 +2302,14 @@ temp$LCL.adj <- temp$est.adj.scf + qnorm((1-temp$conf.level)/2)*temp$SE.adj.SCF.
 temp$UCL.adj <- temp$est.adj.scf + qnorm((1+temp$conf.level)/2)*temp$SE.adj.SCF.ds
 
 temp <- temp[,c("Stratum.Domain","estimate","SE","SCF","est.adj.scf","SE.adj.scf","se.inflate","SE.adj.SCF.ds",
-                "LCL.adj","UCL.adj")]
+                "conf.level","LCL.adj","UCL.adj")]
 temp <- temp[order(temp$Stratum.Domain),]
 kable(temp, row.names=FALSE,
       caption="Estimated bull.100 cows using per-area (MoosePopR), corrected for sightability, and domain stratification",
-      col.names=c("StratumDomain","Est","SE","SCF","Est","SE","SE inflate","SE","LCL", "UCL"),
-      digits=c(0, 0,0, 2, 0,0, 2, 0,0,0)) %>%
+      col.names=c("StratumDomain","Est","SE","SCF","Est","SE","SE inflate","SE","Conf level","LCL", "UCL"),
+      digits=c(0, 0,0, 2, 0,0, 2, 0,  2,0,0)) %>%
       add_header_above(c(" "=1, "Uncorrected for SCF"=2,
-                         " "=1, "Apply SCF"=2," "=1,"Corrected for SCF and domain"=3)) %>%
+                         " "=1, "Apply SCF"=2," "=1,"Corrected for SCF and domain"=4)) %>%
       kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
 
 ```
