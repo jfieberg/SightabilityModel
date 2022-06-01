@@ -1297,7 +1297,7 @@ inflate.density <- plyr::summarize(bootres.final,
         mean.estimate=mean(estimate),
         sd.estimate  =sd  (estimate),
         mean.se      =mean(SE),
-        se.inflate   = sd.estimate / mean.se)
+        se.inflate   = ifelse(is.finite(sd.estimate / mean.se), sd.estimate / mean.se, 1))
 #inflate.density
 #round_df(inflate.density,3)
 kable(inflate.density, row.names=FALSE,
@@ -1363,7 +1363,7 @@ inflate.abundance <- plyr::summarize(bootres.final,
         mean.estimate=mean(estimate),
         sd.estimate  =sd  (estimate),
         mean.se      =mean(SE),
-        se.inflate   = sd.estimate / mean.se)
+        se.inflate   = ifelse(is.finite(sd.estimate / mean.se), sd.estimate / mean.se, 1))
 #round_df(inflate.abundance,3)
 kable(inflate.abundance, row.names=FALSE,
       caption="Results from bootstrapping estimates of abundance",
@@ -1970,7 +1970,7 @@ inflate.se.domain.strat <- plyr::summarize(bootres.final,
         mean.estimate=mean(estimate),
         sd.estimate  =sd  (estimate),
         mean.se      =mean(SE),
-        se.inflate   = sd.estimate / mean.se)
+        se.inflate   = ifelse(is.finite(sd.estimate / mean.se), sd.estimate / mean.se, 1))
 
 kable(inflate.se.domain.strat, row.names=FALSE,
       caption="Results from bootstrapping estimates of abundance with manual adjustment for sightability",
@@ -2025,7 +2025,7 @@ inflate.se.domain.strat.SCF <- plyr::summarize(bootres.final,
         mean.estimate=mean(estimate),
         sd.estimate  =sd  (estimate),
         mean.se      =mean(SE),
-        se.inflate   = sd.estimate / mean.se)
+        se.inflate   = ifelse(is.finite(sd.estimate / mean.se), sd.estimate / mean.se, 1))
 
 kable(inflate.se.domain.strat.SCF, row.names=FALSE,
       caption="Results from bootstrapping estimates of abundance when sightability model is also bootstrapped",
@@ -2062,6 +2062,259 @@ The additional impact of the uncertainty in the sightability model on the SE for
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 
 ```
+
+
+# Final estimates
+
+Here are the final estimates of density and abundance for all moose, and the bull:100 cows ratio
+estimated using *MoosePopR_DomStrat()* (mean per area estimator) 
+with appropriate corrections for multiple measurements on the same
+sampling units and the uncertainty in the sightability model.
+
+In each section, we present the estimate/se without corrections for the sightability,
+the mean sightability correction factor, the corrected estimate/se after applying
+the sightability correction factor, and finally, the corrected SE accounting for
+the uncertainty in the sightability model and for the multiple measurements in multiple domains on the same
+unit.
+
+## Abundance of all moose - corrected for sightability and domain stratification
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# Correct the total count for sightability
+SU.WayPoint $SCF <- SightabilityModel::compute.SCF(SU.WayPoint, 
+                                                   sightability.model, 
+                                                   sightability.beta, 
+                                                   sightability.beta.cov)
+SU.WayPoint $Total.Count.C <- SU.WayPoint$Total.Count * SU.WayPoint$SCF
+
+abund.PA.C.MP <- MoosePopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, abundance=~Total.Count.C,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
+
+abund.PA.UC.MP <- MoosePopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, abundance=~Total.Count,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
+
+set.seed(14353) # use the same seed so that we get the same simulated data
+bootres <- plyr::rlply(n.boot, 
+                       MoosePopR_DomStrat_bootrep(
+                         SU.Totals, 
+                         SU.Selected, 
+                         SU.WayPoint,
+                         sight.model=sightability.model,
+                         sight.beta =sightability.beta,
+                         sight.beta.cov=sightability.beta.cov,
+                         density=NULL, 
+                         abundance=~Total.Count, 
+                         numerator=NULL, 
+                         denominator=NULL,
+                         stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                        ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                        ,block.id.var            ="SamplingUnitID"
+                        ,block.area.var          ="SurveyedArea")
+
+         )
+# extract estimates of overall abundance
+bootres.final <- plyr::ldply(bootres, function(x){
+    x$boot.res
+})
+
+inflate.se.domain.strat.SCF <- plyr::ddply(bootres.final,"Stratum.Domain", plyr::summarize,
+        n.boot = length(estimate),
+        mean.estimate=mean(estimate),
+        sd.estimate  =sd  (estimate),
+        mean.se      =mean(SE),
+        se.inflate   = ifelse(is.finite(sd.estimate / mean.se), sd.estimate / mean.se, 1))
+
+abund.PA.C.MP <- plyr::rename(abund.PA.C.MP, c("estimate"="est.adj.scf",
+                                               "SE"      ="SE.adj.scf"))
+
+temp <- merge(abund.PA.UC.MP[,c("Stratum.Domain","estimate","SE","conf.level")],
+              abund.PA.C.MP [,c("Stratum.Domain","est.adj.scf","SE.adj.scf")])
+temp$SCF <- temp$est.adj.scf / temp$estimate
+temp <- merge(temp, inflate.se.domain.strat.SCF[,c("Stratum.Domain","se.inflate")])
+temp$SE.adj.SCF.ds  <- temp$SE.adj.scf * temp$se.inflate
+temp$LCL.adj <- temp$est.adj.scf + qnorm((1-temp$conf.level)/2)*temp$SE.adj.SCF.ds
+temp$UCL.adj <- temp$est.adj.scf + qnorm((1+temp$conf.level)/2)*temp$SE.adj.SCF.ds
+
+temp <- temp[,c("Stratum.Domain","estimate","SE","SCF","est.adj.scf","SE.adj.scf","se.inflate","SE.adj.SCF.ds",
+                "LCL.adj","UCL.adj")]
+temp <- temp[order(temp$Stratum.Domain),]
+kable(temp, row.names=FALSE,
+      caption="Estimated abundance using per-area (MoosePopR), corrected for sightability, and domain stratification",
+      col.names=c("StratumDomain","Est","SE","SCF","Est","SE","SE inflate","SE","LCL", "UCL"),
+      digits=c(0, 0,0, 2, 0,0, 2, 0,0,0)) %>%
+      add_header_above(c(" "=1, "Uncorrected for SCF"=2,
+                         " "=1, "Apply SCF"=2," "=1,"Corrected for SCF and domain"=3)) %>%
+      kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
+
+```
+
+## Density of all moose - corrected for sightability and domain stratification
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# Correct the total count for sightability
+SU.WayPoint $SCF <- SightabilityModel::compute.SCF(SU.WayPoint, 
+                                                   sightability.model, 
+                                                   sightability.beta, 
+                                                   sightability.beta.cov)
+SU.WayPoint $Total.Count.C <- SU.WayPoint$Total.Count * SU.WayPoint$SCF
+
+density.PA.C.MP <- MoosePopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, density=~Total.Count.C,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
+
+density.PA.UC.MP <- MoosePopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, density=~Total.Count,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
+
+set.seed(5668756) # use the same seed so that we get the same simulated data
+bootres <- plyr::rlply(n.boot, 
+                       MoosePopR_DomStrat_bootrep(
+                         SU.Totals, 
+                         SU.Selected, 
+                         SU.WayPoint,
+                         sight.model=sightability.model,
+                         sight.beta =sightability.beta,
+                         sight.beta.cov=sightability.beta.cov,
+                         abundance=NULL, 
+                         density=~Total.Count, 
+                         numerator=NULL, 
+                         denominator=NULL,
+                         stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                        ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                        ,block.id.var            ="SamplingUnitID"
+                        ,block.area.var          ="SurveyedArea")
+
+         )
+# extract estimates of overall density
+bootres.final <- plyr::ldply(bootres, function(x){
+    x$boot.res
+})
+
+inflate.se.domain.strat.SCF <- plyr::ddply(bootres.final,"Stratum.Domain", plyr::summarize,
+        n.boot = length(estimate),
+        mean.estimate=mean(estimate),
+        sd.estimate  =sd  (estimate),
+        mean.se      =mean(SE),
+        se.inflate   = ifelse(is.finite(sd.estimate / mean.se), sd.estimate / mean.se, 1))
+
+density.PA.C.MP <- plyr::rename(density.PA.C.MP, c("estimate"="est.adj.scf",
+                                                   "SE"      ="SE.adj.scf"))
+
+temp <- merge(density.PA.UC.MP[,c("Stratum.Domain","estimate","SE","conf.level")],
+              density.PA.C.MP [,c("Stratum.Domain","est.adj.scf","SE.adj.scf")])
+temp$SCF <- temp$est.adj.scf / temp$estimate
+temp <- merge(temp, inflate.se.domain.strat.SCF[,c("Stratum.Domain","se.inflate")])
+temp$SE.adj.SCF.ds  <- temp$SE.adj.scf * temp$se.inflate
+temp$LCL.adj <- temp$est.adj.scf + qnorm((1-temp$conf.level)/2)*temp$SE.adj.SCF.ds
+temp$UCL.adj <- temp$est.adj.scf + qnorm((1+temp$conf.level)/2)*temp$SE.adj.SCF.ds
+
+temp <- temp[,c("Stratum.Domain","estimate","SE","SCF","est.adj.scf","SE.adj.scf","se.inflate","SE.adj.SCF.ds",
+                "LCL.adj","UCL.adj")]
+temp <- temp[order(temp$Stratum.Domain),]
+kable(temp, row.names=FALSE,
+      caption="Estimated density using per-area (MoosePopR), corrected for sightability, and domain stratification",
+      col.names=c("StratumDomain","Est","SE","SCF","Est","SE","SE inflate","SE","LCL", "UCL"),
+      digits=c(0, 3,3, 2, 3,3, 2, 3,3,3)) %>%
+      add_header_above(c(" "=1, "Uncorrected for SCF"=2,
+                         " "=1, "Apply SCF"=2," "=1,"Corrected for SCF and domain"=3)) %>%
+      kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
+
+```
+
+## Bulls:100 Cows - corrected for sightability and domain stratification
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# Correct the total count for sightability
+
+SU.WayPoint $SCF <- SightabilityModel::compute.SCF(SU.WayPoint, 
+                                                   sightability.model, 
+                                                   sightability.beta, 
+                                                   sightability.beta.cov)
+SU.WayPoint $Bulls.100.Total.C <- SU.WayPoint$Bulls.100.Total * SU.WayPoint$SCF
+SU.WayPoint $Cows.Total.C      <- SU.WayPoint$Cows.Total      * SU.WayPoint$SCF
+
+bull.cow.PA.C.MP <- MoosePopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint, 
+                                       numerator=~Bulls.100.Total.C,
+                                       denominator=~Cows.Total.C,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
+
+bull.cow.PA.UC.MP <- MoosePopR_DomStrat(SU.Totals, SU.Selected, SU.WayPoint,
+                                       numerator=~Bulls.100.Total,
+                                       denominator=~Cows.Total,
+                                 stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                                ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                                ,block.id.var            ="SamplingUnitID"
+                                ,block.area.var          ="SurveyedArea")
+
+set.seed(342343) # use the same seed so that we get the same simulated data
+bootres <- plyr::rlply(n.boot, 
+                       MoosePopR_DomStrat_bootrep(
+                         SU.Totals, 
+                         SU.Selected, 
+                         SU.WayPoint,
+                         sight.model=sightability.model,
+                         sight.beta =sightability.beta,
+                         sight.beta.cov=sightability.beta.cov,
+                         abundance=NULL, 
+                         density  =NULL, 
+                         numerator  =~Bulls.100.Total, 
+                         denominator=~Cows.Total,
+                         stratum.total.blocks.var= "Total.SU"  # total number of blocks in the stratum      
+                        ,stratum.total.area.var  ="Total.SU.Area.km2" # total area of blocks in the stratum
+                        ,block.id.var            ="SamplingUnitID"
+                        ,block.area.var          ="SurveyedArea")
+
+         )
+# extract estimates of overall bull.cow ratio
+bootres.final <- plyr::ldply(bootres, function(x){
+    x$boot.res
+})
+
+inflate.se.domain.strat.SCF <- plyr::ddply(bootres.final,"Stratum.Domain", plyr::summarize,
+        n.boot = length(estimate),
+        mean.estimate=mean(estimate),
+        sd.estimate  =sd  (estimate),
+        mean.se      =mean(SE),
+        se.inflate   = ifelse(is.finite(sd.estimate / mean.se), sd.estimate / mean.se, 1))
+
+bull.cow.PA.C.MP <- plyr::rename(bull.cow.PA.C.MP, c("estimate"="est.adj.scf",
+                                                   "SE"      ="SE.adj.scf"))
+
+temp <- merge(bull.cow.PA.UC.MP[,c("Stratum.Domain","estimate","SE","conf.level")],
+              bull.cow.PA.C.MP [,c("Stratum.Domain","est.adj.scf","SE.adj.scf")])
+temp$SCF <- temp$est.adj.scf / temp$estimate
+temp <- merge(temp, inflate.se.domain.strat.SCF[,c("Stratum.Domain","se.inflate")])
+temp$SE.adj.SCF.ds  <- temp$SE.adj.scf * temp$se.inflate
+temp$LCL.adj <- temp$est.adj.scf + qnorm((1-temp$conf.level)/2)*temp$SE.adj.SCF.ds
+temp$UCL.adj <- temp$est.adj.scf + qnorm((1+temp$conf.level)/2)*temp$SE.adj.SCF.ds
+
+temp <- temp[,c("Stratum.Domain","estimate","SE","SCF","est.adj.scf","SE.adj.scf","se.inflate","SE.adj.SCF.ds",
+                "LCL.adj","UCL.adj")]
+temp <- temp[order(temp$Stratum.Domain),]
+kable(temp, row.names=FALSE,
+      caption="Estimated bull.100 cows using per-area (MoosePopR), corrected for sightability, and domain stratification",
+      col.names=c("StratumDomain","Est","SE","SCF","Est","SE","SE inflate","SE","LCL", "UCL"),
+      digits=c(0, 0,0, 2, 0,0, 2, 0,0,0)) %>%
+      add_header_above(c(" "=1, "Uncorrected for SCF"=2,
+                         " "=1, "Apply SCF"=2," "=1,"Corrected for SCF and domain"=3)) %>%
+      kable_styling("bordered",position = "center", full_width=FALSE, latex_options = "HOLD_position")
+
+```
+
+
 
 # Summary and Recommendations
 
