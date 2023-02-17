@@ -1022,7 +1022,7 @@ for extraction later.
 
 I have only computed abundance and density estimates
 for all moose, but similar code can be used for other age/sex categories. Similarly, I have only
-considered the bull:cow ratio and other ratio can be computed in similar fashion.
+considered the bull:cow ratio and other ratios can be estimated in similar fashion.
 
 #### Abundance of all moose
 

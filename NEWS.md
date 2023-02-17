@@ -1,3 +1,9 @@
+# SightabilityModel 1.5.2
+
+* Resubmission to remove Imports/Suggests: tidyverse
+* Typographical errors corrected
+* No new functionality.
+
 # SightabilityModel 1.5.1
 
 * Fixup vignette index to sort properly
