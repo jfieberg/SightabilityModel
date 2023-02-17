@@ -1,7 +1,7 @@
 citHeader("To cite SightabilityModel in publications use:")
 
 bibentry(
-  entry        = "Article",
+  bibtype      = "Article",
   title        = "Estimating Population Abundance Using Sightability Models: {R} {SightabilityModel} Package",
   author       = "John R. Fieberg",
   journal      = "Journal of Statistical Software",
