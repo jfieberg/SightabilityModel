@@ -1,8 +1,9 @@
 citHeader("To cite SightabilityModel in publications use:")
 
-citEntry(entry = "Article",
+bibEntry(
+  entry        = "Article",
   title        = "Estimating Population Abundance Using Sightability Models: {R} {SightabilityModel} Package",
-  author       = personList(as.person("John R. Fieberg")),
+  author       = "John R. Fieberg",
   journal      = "Journal of Statistical Software",
   year         = "2012",
   volume       = "51",
