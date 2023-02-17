@@ -8,14 +8,8 @@ Update to fix issues with Imports/Suggests: tidyverse
 ## R CMD check results
 There were   NO   ERRORs or WARNINGs. 
 
-There were 2  NOTES 
+There were 0  NOTES 
 
-* checking sizes of PDF files under 'inst/doc' ... NOTE
-Unable to find GhostScript executable to run checks on size reduction
-
-*  checking for detritus in the temp directory
-   Found the following files/directories:
-     'lastMiKTeXException'
-     
+   
 ## Reverse dependencies
 None.
