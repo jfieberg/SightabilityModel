@@ -1,3 +1,7 @@
+# SightabilityModel 1.5.3
+
+* Substantial Improvement in computational time for Wong.est() function.
+
 # SightabilityModel 1.5.2
 
 * Resubmission to remove Imports/Suggests: tidyverse
