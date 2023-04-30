@@ -96,18 +96,22 @@ function(total, srates, nh, Nh, stratum, subunit, covars, beta, varbeta, smat=NU
    if(is.null(smat)){ #Variance/covariance matrix of smat not supplied by user
                     # Use asymptotic estimate based on log-normal assumption (of SS and Wong)  
   # Do as much of the matrix multiplication outside of loop as possible
-    xb <- xdata%*%beta  # X'beta
+    xb <- xdata %*% beta  # X'beta
     xbb <- kronecker(xb, t(xb), FUN = "+")  # x1+x2
-    xvarbeta <- xdata%*%varbeta%*%t(xdata)  # X Sig X
+    xvarbeta <- xdata %*% varbeta %*% t(xdata)  # X Sig X
     for(i in 1:nxdata){
-      for(j in i:nxdata){
-       xtemp1 <- as.vector(xdata[i, ], mode = "numeric")
-       xtemp2 <- as.vector(xdata[j, ], mode = "numeric")
-       xtot <- t(xtemp1+xtemp2)
-       sm3[i, j] <- sm3[j, i] <- xtot%*%varbeta%*%t(xtot)/2
+      # truncate the outer matrix to improve speed
+      xd <- xdata[i:nxdata, , drop = FALSE]
+      for(j in 1:nrow(xd)){
+        xtot <- xd[1, ] + xd[j, ]
+        sm3[i, j + i - 1] <- t(xtot) %*% varbeta %*% xtot / 2
       }
     }
-    smat <- exp(-xbb-sm3)*(exp(xvarbeta)-1)
+    # populate other triangle
+    sm3 <- (sm3 + t(sm3))
+    # fix the fact that diagonal was doubled
+    diag(sm3) <- diag(sm3) * 0.5
+    smat <- exp(-xbb - sm3) * (exp(xvarbeta) - 1)
   }
   
   #------------------------ End Calculation of Cov matrix ------------------------------------------------
@@ -136,6 +140,8 @@ function(total, srates, nh, Nh, stratum, subunit, covars, beta, varbeta, smat=NU
 
   # pkkprime for 2 observations from same stratum,h = (nh/Nh)*(nh-1)/(Nh-1)
     pkkprime <- as.vector(nh*(nh-1)/(Nh*(Nh-1)))
+  # names are lost, but they're needed for calculating Eq2.2.7t5 below
+    names(pkkprime) <- names(nh)
 
   # Update to fix bug noted by Cliff Rice (when applied to a single sampling unit)
    if(all(nh == Nh) != TRUE){
