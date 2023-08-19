@@ -5,7 +5,8 @@ No functionality changes.
 
 ## Test environments
 * local OS X install, R 4.3.1
-* local Windoze 10,   R 4.2.3
+* devtools::check_win_release()
+* devtools::check_win_devel()
 
 ## R CMD check results
 There were   NO   ERRORs or WARNINGs. 
