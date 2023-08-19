@@ -515,7 +515,7 @@ in the estimates, and the naive approach to domain stratification will work perf
 # Data structures that allow for both types of stratification
 
 Careful data structures will be needed to ensure that both types of stratification can be
-dealt with when using *MoosePopR_DomeStrat()* and *SightabilityPopR()*.
+dealt with when using *MoosePopR_DomStrat()* and *SightabilityPopR()*.
 
 We have created an Excel workbook with (fictitious) but realistic data
 as an illustration of how to analyze a domain stratified survey.
@@ -1513,7 +1513,7 @@ by measuring some sampling units in both domains.
 
 #### Abundance
 
-The estimates of density computed using the *SightabilityPopR()* family of funtions
+The estimates of density computed using the *SightabilityPopR()* family of functions
 are a *mean-per-unit* estimator for each stratum, but corrected for
 sightability. The *mean-per-unit* estimator used by *SightabilityPopR()* family
 differs from the *mean-per-area* estimator used by the *MoosePopR()* family which can
@@ -2325,7 +2325,7 @@ kable(temp, row.names=FALSE,
 
 Both regular and domain stratification can be dealt with using the 
 *MoosePopR_DomStrat()* and *SightabilityPopR_DomStrat()* functions
-which create "stata" based on a combination of stratum and domain values.
+which create "strata" based on a combination of stratum and domain values.
 However, the SE of the overall estimate does not account for the 
 multiple domains measured on some sampling units -- a bootstrap approach may be needed.
 
@@ -2551,7 +2551,8 @@ kable(temp, row.names=FALSE,
 
 Notice that the point estimates  from the mean-per-unit estimators when/when not corrected for sightability
 are the same between the *MoosePopR()* and *SightabilityPopR()* families (as they must be). The computed SE are
-different from the two functions when adjusting for sightability because the *MoosePopR()* famly has no mechanism
+different from the two functions when adjusting for sightability because the *MoosePopR()* family 
+has no mechanism
 for accounting for the uncertainty in the beta estimates. 
 
 However, notice from the output from  *SightabilityPopR_DomStrat()* that the largest component of variance

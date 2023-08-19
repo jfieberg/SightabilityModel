@@ -11,11 +11,6 @@ of covariates.  This model is then used with observational survey data to
 estimate population size, while accounting for uncertain detection.  See
 Steinhorst and Samuel (1989).
 }
-\details{
-\tabular{ll}{ Package: \tab SightabilityModel\cr Type: \tab Package\cr
-Version: \tab 1.3\cr Date: \tab 2014-10-03\cr License: \tab GPL-2\cr
-LazyLoad: \tab yes\cr }
-}
 \references{
 Fieberg, J.  2012.  Estimating Population Abundance Using
 Sightability Models: R SightabilityModel Package. Journal of Statistical
@@ -27,6 +22,6 @@ Methods for Aerial Surveys of Wildlife Populations. Biometrics 45:415--425.
 \author{
 John Fieberg
 
-Maintainer: John Fieberg <jfieberg@umn.edu>
+Maintainer: John Fieberg <jfieberg@umn.edu>, Carl James Schwarz <cschwarz.stat.sfu.ca@gmail.com>
 }
 \keyword{package}

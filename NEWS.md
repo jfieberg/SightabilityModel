@@ -1,3 +1,7 @@
+# SightabilityModel 1.5.4
+
+* Correct documentation as requested by CRAN. NO changes to functionality.
+
 # SightabilityModel 1.5.3
 
 * Substantial Improvement in computational time for Wong.est() function.

@@ -112,7 +112,7 @@ NULL
 #'         identify sex/age class)} 
 #'   \item{voc}{ measurement of visual
 #'        obstruction} 
-#'   \item{grpsize}{group size (cluter size)} 
+#'   \item{grpsize}{group size (cluster size)} 
 #' }
 #' @references Giudice, J H. and Fieberg, J. and Lenarz, M. S.  2012. Spending
 #' Degrees of Freedom in a Poor Economy: A Case Study of Building a
@@ -171,16 +171,12 @@ NULL
 #' estimate population size, while accounting for uncertain detection.  See
 #' Steinhorst and Samuel (1989).
 #' 
-#' \tabular{ll}{ Package: \tab SightabilityModel\cr Type: \tab Package\cr
-#' Version: \tab 1.3\cr Date: \tab 2014-10-03\cr License: \tab GPL-2\cr
-#' LazyLoad: \tab yes\cr }
-#' 
 #' @name SightabilityModel-package
 #' @aliases SightabilityModel-package SightabilityModel
 #' @docType package
 #' @author John Fieberg
 #' 
-#' Maintainer: John Fieberg <jfieberg@@umn.edu>
+#' Maintainer: John Fieberg <jfieberg@@umn.edu>, Carl James Schwarz <cschwarz.stat.sfu.ca@gmail.com>
 #' @references Fieberg, J.  2012.  Estimating Population Abundance Using
 #' Sightability Models: R SightabilityModel Package. Journal of Statistical
 #' Software, 51(9), 1-20.  URL https://doi.org/10.18637/jss.v051.i09 

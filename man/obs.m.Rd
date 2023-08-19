@@ -18,7 +18,7 @@ A data frame with 805 observations on the following 11 variables.
         identify sex/age class)} 
   \item{voc}{ measurement of visual
        obstruction} 
-  \item{grpsize}{group size (cluter size)} 
+  \item{grpsize}{group size (cluster size)} 
 }
 }
 \description{
